@@ -42,7 +42,7 @@ x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, shuffl
 
 #2. 모델링 
 model = Sequential()
-model.add(Dense(30, activation='linear', input_dim=30))  # activation='linear' -> 원래값을 그대로 넘겨준다(default로 생략 가능)
+model.add(Dense(30, activation='linear', input_dim=30))  # activation='linear' -> 원래 값을 그대로 넘겨준다(default로 생략 가능)
 model.add(Dense(25, activation='linear'))  # 값이 너무 큰거같으면 중간에 sigmoid한번써서 줄여줄 수도 있다(레이어를 거치며 커져버린 y=wx+b의 값들을 0.0~1.0사이로 잡아주는 역할)
 model.add(Dense(20, activation='linear'))
 model.add(Dense(15, activation='linear'))

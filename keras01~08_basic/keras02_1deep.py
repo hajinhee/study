@@ -3,6 +3,8 @@ from tensorflow.keras.models import Sequential # 시퀀셜 모델과
 from tensorflow.keras.layers import Dense # 덴스 레이어를 쓸수있다. 
 import numpy as np
 
+
+#1. 데이터 로드
 x =  np.array([1,2,3]) # shape=(3, 1)
 y =  np.array([1,2,3])
 
