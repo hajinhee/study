@@ -8,7 +8,7 @@ from sklearn.metrics import r2_score
 #1. 데이터
 datasets = load_diabetes()
 x = datasets.data # 입력데이터
-y = datasets.target # 
+y = datasets.target 
 
 x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, shuffle=True, random_state=49)
 

@@ -21,8 +21,7 @@ x = np.transpose(x)  # shape=(10, 1)
  [9]]
  '''
 y = np.array( [[1,2,3,4,5,6,7,8,9,10],
-               [1,1.1,1.2,1.3,1.4,1.5,
-                1.6,1.5,1.4,1.3],
+               [1,1.1,1.2,1.3,1.4,1.5,1.6,1.5,1.4,1.3],
                [10,9,8,7,6,5,4,3,2,1]]) # shape=(3, 10)
 y = np.transpose(y) # shape=(10, 3)
 '''
@@ -40,7 +39,7 @@ y = np.transpose(y) # shape=(10, 3)
 
 # 2. 모델구성 
 model = Sequential()
-model.add(Dense(10, input_dim=1))
+model.add(Dense(10, input_dim=1))  # 입력데이터(x)의 열 개수를 넣는다.
 model.add(Dense(5))
 model.add(Dense(11))
 model.add(Dense(8))

@@ -2,24 +2,18 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from sklearn.datasets import load_diabetes
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler,StandardScaler,RobustScaler,MaxAbsScaler
+from sklearn.preprocessing import MaxAbsScaler
 from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.metrics import r2_score
 import numpy as np
 
 #1.데이터 로드 및 정제
-
 datasets = load_diabetes()
 x = datasets.data
 y = datasets.target
 
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.9, shuffle=True, random_state=49) 
 
-x_train,x_test,y_train,y_test = train_test_split(x,y, train_size=0.9, shuffle=True, random_state=49) 
-
-
-#scaler = MinMaxScaler()   
-#scaler = StandardScaler()
-#scaler = RobustScaler()
 scaler = MaxAbsScaler()
 scaler.fit(x_train)       
 x_train = scaler.transform(x_train)   
@@ -29,9 +23,9 @@ x_test = scaler.transform(x_test)
 #2. 모델구성,모델링
 model = Sequential()
 model.add(Dense(100, input_dim=10))
-model.add(Dense(80,activation='relu')) #
+model.add(Dense(80,activation='relu')) 
 model.add(Dense(60))
-model.add(Dense(40,activation='relu')) #
+model.add(Dense(40,activation='relu')) 
 model.add(Dense(20))
 model.add(Dense(1))
 model.summary()
