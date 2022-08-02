@@ -9,11 +9,9 @@ y = np.array(range(1,17))
 
 # train_test_split로 나누시오 10 3 3 
 x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, random_state=66)
-x_val, x_test, y_val, y_test = train_test_split(x_test, y_test, train_size=0.5, random_state=49)
 
 print(x_train) # [10  3 15  6 12 11  4  8 13  5]
 print(y_train) # [10  3 15  6 12 11  4  8 13  5]
-print(x_val, y_val) # [ 2  7 14] [ 2  7 14]
 print(x_test) # [16  9  1]
 print(y_test) # [16  9  1]
 
