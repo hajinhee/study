@@ -68,7 +68,7 @@ print(y)  # (178, 3)
 
 # 3. sklearn의 OneHotEncoder 
 en = OneHotEncoder(sparse=False)  # sparse=True가 디폴트이며 이는 Matrix를 반환한다. 원핫인코딩에서 필요한 것은 array이므로 sparse 옵션에 False를 넣어준다.       
-y = en.fit_transform(y.reshape(-1, 1))  # 2차원변환 해주기 위해 행의 자리에 -1넣고 열이1개라서 1넣은거다 그러면 세로베열된다. 가로배열은(1,-1)이다.
+y = en.fit_transform(y.reshape(-1, 1))  # 2차원변환 해주기 위해 행의 자리에 -1넣고 열이 1개라서 1넣은 것. 그러면 세로 배열된다. 가로 배열은(1,-1)이다.
 print(y)  # (178, 3)  
 '''
 [[1. 0. 0.]
