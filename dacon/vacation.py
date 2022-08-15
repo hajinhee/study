@@ -8,9 +8,7 @@ from icecream import ic
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import cross_val_score
 from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import MinMaxScaler,StandardScaler,RobustScaler,MaxAbsScaler
 
 
 # 데이터 준비
@@ -142,83 +140,63 @@ MonthlyIncome               133
 '''
 ProdTaken    0
 '''
-#scaler = MinMaxScaler()   
-#scaler = StandardScaler()
-#scaler = RobustScaler()
-scaler = MaxAbsScaler()
 
-# 고객의 제품 인지 방법 (회사의 홍보 or 스스로 검색) 결측치 채우기 & 맵핑
+# # 나이 mapping 
+# age_mapping = {'Unknown': 0, 'Teenager': 1, 'Young Adult': 2, 'Adult': 3, 'Senior': 4}
+# bins = [-1, 0, 19, 30, 50, np.inf]  # scaling
+# labels = ['Unknown', 'Teenager', 'Young Adult', 'Adult', 'Senior']
+# for these in [train, test]:
+#     these['Age'] = pd.cut(these['Age'], bins, labels=labels)
+#     these['Age'] = these['Age'].map(age_mapping)
+
+# 고객의 제품 인지 방법 (회사의 홍보 or 스스로 검색) mapping
 for these in [train, test]:
-    these['TypeofContact'] = these['TypeofContact'].map({'Company Invited': 0, 'Self Enquiry': 1})
-    these['TypeofContact'].fillna(1, inplace=True) 
+    these['TypeofContact'] = these['TypeofContact'].map({'Unknown': 0, 'Company Invited': 1, 'Self Enquiry': 2})
 
-# 나이 맵핑 
-age_mapping = {'Unknown': 0, 'Teenager': 1, 'Young Adult': 2, 'Adult': 3, 'Senior': 4}
-bins = [-1, 0, 19, 30, 50, np.inf]  # scaling
-labels = ['Unknown', 'Teenager', 'Young Adult', 'Adult', 'Senior']
-for these in [train, test]:
-    these['Age'] = these['Age'].fillna(-0.5)   # 결측치(누락 데이터/NaN) 치환 처리
-    these['Age'] = pd.cut(these['Age'], bins, labels=labels)
-    these['Age'] = these['Age'].map(age_mapping)
-
-# 성별 맵핑
+# 성별 mapping
 for these in [train, test]:
     these['Gender'] = these['Gender'].map({'Male': 0, 'Female': 1, 'Fe Male': 1})
 
-# 직업 맵핑
+# 직업 mapping
 for these in [train, test]:
     these['Occupation'] = these['Occupation'].map({'Salaried': 0, 'Small Business': 1, 'Large Business': 2, 'Free Lancer':3})
 
-# 영업 사원이 제시한 상품 맵핑
+# 영업 사원이 제시한 상품 mapping
 for these in [train, test]:
     these['ProductPitched'] = these['ProductPitched'].map({'Basic': 0, 'Deluxe': 1, 'Standard': 2, 'Super Deluxe':3, 'King': 4})
 
-# 결혼 여부 맵핑
+# 결혼 여부 mapping
 for these in [train, test]:
     these['MaritalStatus'] = these['MaritalStatus'].map({'Married': 0, 'Divorced': 1, 'Single': 2, 'Unmarried':3})
 
-# 직급 맵핑
+# 직급 mapping
 for these in [train, test]:
     these['Designation'] = these['Designation'].map({'Executive': 0, 'Manager': 1, 'Senior Manager': 2, 'AVP':3, 'VP': 4})
 
-# 영업 사원이 고객에게 제공하는 프레젠테이션 기간 맵핑
-bins = [5, 15, 25, 36]
-labels = [0, 1, 2]
+# # 영업 사원이 고객에게 제공하는 프레젠테이션 기간 mapping
+# bins = [0, 5, 15, 25, 36]
+# labels = [0, 1, 2, 3]
+# for these in [train, test]:
+#     these['DurationOfPitch'] = pd.cut(these['DurationOfPitch'], bins, labels=labels)
+
+# # 평균 연간 여행 횟수 mapping
+# bins = [1, 3, 6, 19]
+# labels = [0, 1, 2]
+# for these in [train, test]:
+#     these['NumberOfTrips'] = pd.cut(these['NumberOfTrips'], bins, labels=labels) 
+
+# 월급여 mapping
+# bins = [0, 20000, 25000, 35000, np.inf]
+# labels = [0, 1, 2, 3]
+# for these in [train, test]:
+#     these['MonthlyIncome'] = pd.cut(these['MonthlyIncome'], bins, labels=labels)
+
+# 결측치 제거
+ls = ['TypeofContact', 'Age', 'MonthlyIncome', 'DurationOfPitch', 'NumberOfTrips', 'NumberOfFollowups',
+'PreferredPropertyStar', 'NumberOfChildrenVisiting']
 for these in [train, test]:
-    these['DurationOfPitch'] = pd.cut(these['DurationOfPitch'], bins, labels=labels) 
-    these['DurationOfPitch'] = these['DurationOfPitch'].fillna(0)
-
-# 평균 연간 여행 횟수 맵핑
-bins = [1, 3, 6, 19]
-labels = [0, 1, 2]
-for these in [train, test]:
-    these['NumberOfTrips'] = pd.cut(these['NumberOfTrips'], bins, labels=labels) 
-    these['NumberOfTrips'] = these['NumberOfTrips'].fillna(0)
-
-# 영업 사원의 프레젠테이션 후 이루어진 후속 조치 수 결측치 처리  
-for these in [train, test]: 
-    these['NumberOfFollowups'].fillna(4, inplace=True) 
-
-# 선호 호텔 숙박업소 등급 결측치 처리
-for these in [train, test]: 
-    these['PreferredPropertyStar'].fillna(3, inplace=True) 
-
-#  함께 여행을 계획 중인 5세 미만의 어린이 수 결측치 처리
-for these in [train, test]: 
-    these['NumberOfChildrenVisiting'].fillna(1, inplace=True) 
-
-# 월급여 맵핑
-ic(train['MonthlyIncome'].value_counts(normalize=False))
-
-bins = [0, 25000, 30000, 35000, np.inf]
-labels = [0, 1, 2, 3]
-for these in [train, test]:
-    these['MonthlyIncome'] = these['MonthlyIncome'].fillna(23624.108894878707)
-    these['MonthlyIncome'] = pd.cut(these['MonthlyIncome'], bins, labels=labels)
-
-
-
-
+    for i in ls:
+        these[i].fillna(0, inplace=True)
 
 
 # train을 x, y로 나누고 불필요한 컬럼 제거
@@ -228,6 +206,7 @@ x = train.drop(columns=['ProdTaken'])
 y = train[['ProdTaken']]
 
 x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.9, shuffle=True, random_state=42)  
+
 
 model = RandomForestClassifier()
 model.fit(x_train, y_train)
