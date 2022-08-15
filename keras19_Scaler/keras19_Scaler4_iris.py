@@ -1,3 +1,4 @@
+from enum import unique
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from sklearn.datasets import load_iris
@@ -9,66 +10,65 @@ import numpy as np
 from pandas import get_dummies
 
 #1.데이터 로드 및 정제
-
 datasets = load_iris()
 x = datasets.data
 y = datasets.target
+print(y)  # 분류모델
+'''
+[0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+ 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 2
+ 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+ 2 2]
+'''
+print( np.unique(y))
+'''
+[0 1 2]
+'''
+y = get_dummies(y)  # 원핫인코딩
+print(y)
+'''
+     0  1  2
+0    1  0  0
+1    1  0  0
+2    1  0  0
+3    1  0  0
+4    1  0  0
+..  .. .. ..
+145  0  0  1
+146  0  0  1
+147  0  0  1
+148  0  0  1
+149  0  0  1
+'''
 
-y = get_dummies(y)
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.9, shuffle=True, random_state=49) 
 
-x_train,x_test,y_train,y_test = train_test_split(x,y, train_size=0.9, shuffle=True, random_state=49) 
-
-#scaler = MinMaxScaler()   #어떤 스케일러 사용할건지 정의부터 해준다.
+#scaler = MinMaxScaler()   # 어떤 스케일러 사용할건지 정의부터 해준다.
 #scaler = StandardScaler()
 #scaler = RobustScaler()
 scaler = MaxAbsScaler()
-scaler.fit(x_train)      
-x_train = scaler.transform(x_train)   
+x_train = scaler.fit_transform(x_train)   
 x_test = scaler.transform(x_test)    
 
 #2. 모델구성,모델링
 model = Sequential()
 model.add(Dense(70, activation='linear', input_dim=4))    
 model.add(Dense(55))   
-model.add(Dense(40,activation='relu')) #
+model.add(Dense(40,activation='relu')) 
 model.add(Dense(25))
-model.add(Dense(10,activation='relu')) #
-model.add(Dense(3, activation='softmax'))  
-
+model.add(Dense(10,activation='relu')) 
+model.add(Dense(3, activation='softmax'))  # 다중분류 모델 출력층에서 사용하는 activation funcion 'softmax'
 model.summary()
-'''
-Model: "sequential"
-_________________________________________________________________
-Layer (type)                 Output Shape              Param #
-=================================================================
-dense (Dense)                (None, 70)                350
-_________________________________________________________________
-dense_1 (Dense)              (None, 55)                3905
-_________________________________________________________________
-dense_2 (Dense)              (None, 40)                2240
-_________________________________________________________________
-dense_3 (Dense)              (None, 25)                1025
-_________________________________________________________________
-dense_4 (Dense)              (None, 10)                260
-_________________________________________________________________
-dense_5 (Dense)              (None, 3)                 33
-=================================================================
-Total params: 7,813
-Trainable params: 7,813
-Non-trainable params: 0
-_________________________________________________________________
-PS D:\Study> 
-'''
-#3. 컴파일 훈련
-model.compile(loss='categorical_crossentropy', optimizer='adam',metrics=['accuracy']) 
-es = EarlyStopping  
-es = EarlyStopping(monitor="val_loss", patience=100, mode='min',verbose=1,baseline=None, restore_best_weights=True)
-model.fit(x_train,y_train,epochs=10000, batch_size=1,validation_split=0.11111111, callbacks=[es])
 
+#3. 컴파일 훈련
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])  # 다중분류 모델에 사용하는 loss funcion 'categorical_crossentropy'
+es = EarlyStopping(monitor="val_loss", patience=100, mode='min', verbose=1, baseline=None, restore_best_weights=True)
+model.fit(x_train, y_train, epochs=10000, batch_size=1, validation_split=0.11111111, callbacks=[es])
 
 #4. 평가 예측
-loss = model.evaluate(x_test,y_test)
-print('loss : ', loss)
+loss = model.evaluate(x_test, y_test)
+print('loss : ', loss[0], 'a')
 
 '''
 결과정리            일반레이어                      relu

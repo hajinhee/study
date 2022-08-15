@@ -31,7 +31,7 @@ print(type(y)) # <class 'numpy.ndarray'>
 print(x.shape, y.shape)  # (581012,54) (581012,) 
 print(np.unique(y))  # [1 2 3 4 5 6 7] -> 클래스가 7개로 다중분류 모델
 
-# catogorical은 (581012, 8) -> 0 1 2 3 4 5 6 7 
+# catogorical은 (581012, 8) -> 0 1 2 3 4 5 6 7 8
 # 싸이킷런의 OneHotEncoder은 (581012, 7)
 # 판다스의 get_dummies는 변환과 더불어 y값을 출력해보면 행의 개수와 y칼럼은 유니크별로 깔끔하게 다 정리까지 해준다
 # (581012,) -> (581012, 7) or (581012, 8)로 softmax 넣으면 되겠지만 상식적으로 8 선택해야 할 이유가 없다 
