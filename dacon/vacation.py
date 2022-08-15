@@ -5,17 +5,13 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import pandas as pd
 from icecream import ic
-import matplotlib.pyplot as plt
 import numpy as np
-from tensorflow.keras.models import Sequential         
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.callbacks import EarlyStopping
-from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
-from sklearn.preprocessing import MinMaxScaler,StandardScaler
-from sklearn.model_selection import KFold,StratifiedKFold
+from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import MinMaxScaler,StandardScaler,RobustScaler,MaxAbsScaler
+
 
 # 데이터 준비
 train = pd.read_csv('dacon/data/train.csv')
@@ -146,6 +142,10 @@ MonthlyIncome               133
 '''
 ProdTaken    0
 '''
+#scaler = MinMaxScaler()   
+#scaler = StandardScaler()
+#scaler = RobustScaler()
+scaler = MaxAbsScaler()
 
 # 고객의 제품 인지 방법 (회사의 홍보 or 스스로 검색) 결측치 채우기 & 맵핑
 for these in [train, test]:
@@ -208,34 +208,38 @@ for these in [train, test]:
     these['NumberOfChildrenVisiting'].fillna(1, inplace=True) 
 
 # 월급여 맵핑
-ic(train['TypeofContact'].value_counts(normalize=False))
-bins = [0, 20000, 35000, np.inf]
-labels = [0, 1, 2]
+ic(train['MonthlyIncome'].value_counts(normalize=False))
+
+bins = [0, 25000, 30000, 35000, np.inf]
+labels = [0, 1, 2, 3]
 for these in [train, test]:
     these['MonthlyIncome'] = these['MonthlyIncome'].fillna(23624.108894878707)
     these['MonthlyIncome'] = pd.cut(these['MonthlyIncome'], bins, labels=labels)
 
 
-# train을 x, y로 나누고 불필요한 columns drop
+
+
+
+
+# train을 x, y로 나누고 불필요한 컬럼 제거
 train.drop(columns=['id'], inplace=True)
 test.drop(columns=['id'], inplace=True)
 x = train.drop(columns=['ProdTaken'])
 y = train[['ProdTaken']]
 
-# 상관관계
-print('상관관계: ', train.corr())
-
-
-# x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.9, shuffle=True, random_state=42)  
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.9, shuffle=True, random_state=42)  
 
 model = RandomForestClassifier()
-model.fit(x, y)
+model.fit(x_train, y_train)
 
-result = model.score(x, y)
-ic('score:', result) 
+ic('Train Accuracy : {:.2f}'.format(model.score(x_train, y_train)))
+ic('Test Accuracy : {:.2f}'.format(model.score(x_test, y_test)))
+
+y_pred = model.predict(x_test)
+ic('score:', accuracy_score(y_pred, y_test)) 
 
 
-# 데이터 summit
+# 데이터 submit
 y_summit = model.predict(test)
 sample_submission['ProdTaken'] = y_summit
 sample_submission.to_csv('dacon/save/sample_submission.csv', index=False)

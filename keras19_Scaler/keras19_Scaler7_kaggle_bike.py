@@ -1,8 +1,8 @@
 from tensorflow.keras.models import Sequential         
 from tensorflow.keras.layers import Dense
+from tensorflow.keras.callbacks import EarlyStopping
 import numpy as np
 import pandas as pd
-from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.preprocessing import MinMaxScaler,StandardScaler,RobustScaler,MaxAbsScaler
