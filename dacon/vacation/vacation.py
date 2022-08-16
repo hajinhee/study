@@ -10,13 +10,15 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import MinMaxScaler,StandardScaler,RobustScaler,MaxAbsScaler
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 
 # 데이터 준비
-train = pd.read_csv('dacon/data/train.csv')
-test = pd.read_csv('dacon/data/test.csv') 
-sample_submission = pd.read_csv('dacon/data/sample_submission.csv')
+train = pd.read_csv('dacon/vacation/data/train.csv')
+test = pd.read_csv('dacon/vacation/data/test.csv') 
+sample_submission = pd.read_csv('dacon/vacation/data/sample_submission.csv')
 
 
 # 데이터 확인
@@ -143,12 +145,24 @@ MonthlyIncome               133
 ProdTaken    0
 '''
 
+#상관관계 분석도
+plt.figure(figsize=(10,8))
+
+heat_table = train.corr()
+mask = np.zeros_like(heat_table)
+mask[np.triu_indices_from(mask)] = True
+heatmap_ax = sns.heatmap(heat_table, annot=True, mask = mask, cmap='coolwarm', vmin=-1, vmax=1)
+heatmap_ax.set_xticklabels(heatmap_ax.get_xticklabels(), fontsize=10, rotation=90)
+heatmap_ax.set_yticklabels(heatmap_ax.get_yticklabels(), fontsize=10)
+plt.title('correlation between features', fontsize=20)
+# plt.show()
+
+
 # 고객의 제품 인지 방법 (회사의 홍보 or 스스로 검색) mapping
 for these in [train, test]:
     these['TypeofContact'] = these['TypeofContact'].map({'Unknown': 0, 'Company Invited': 2, 'Self Enquiry': 1})
 
 # 성별 mapping
-
 for these in [train, test]:
     these['Gender'] = these['Gender'].map({'Male': 0, 'Female': 1, 'Fe Male': 1})
 
@@ -157,12 +171,10 @@ for these in [train, test]:
     these['Occupation'] = these['Occupation'].map({'Salaried': 0, 'Small Business': 1, 'Large Business': 2, 'Free Lancer':3})
 
 # 영업 사원이 제시한 상품 mapping
-
 for these in [train, test]:
     these['ProductPitched'] = these['ProductPitched'].map({'Super Deluxe': 0, 'King': 1, 'Deluxe': 2, 'Standard':3, 'Basic': 4})
 
 # 결혼 여부 mapping
-
 for these in [train, test]:
     these['MaritalStatus'] = these['MaritalStatus'].map({'Divorced': 0, 'Married': 1, 'Unmarried': 2, 'Single':3})
 
@@ -171,13 +183,25 @@ for these in [train, test]:
     these['Designation'] = these['Designation'].map({'AVP': 0, 'VP': 1, 'Manager': 2, 'Senior Manager':3, 'Executive': 4})
 
 
-# 결측치 제거
-ls = ['TypeofContact', 'MonthlyIncome', 'Age', 'DurationOfPitch', 'NumberOfTrips', 'NumberOfFollowups',
-'PreferredPropertyStar', 'NumberOfChildrenVisiting']
+# 결측치 처리
+ls = ['TypeofContact', 'DurationOfPitch', ]
 for these in [train, test]:
-    for i in ls:
-        these[i].fillna(0, inplace=True)
+    for col in ls:
+        these[col].fillna(0, inplace=True)
 
+mean_cols = ['Age','NumberOfFollowups','PreferredPropertyStar', 'MonthlyIncome',
+            'NumberOfTrips','NumberOfChildrenVisiting']
+for these in [train, test]:
+    for col in mean_cols:
+        these[col] = these[col].fillna(train[col].mean())
+
+# 스케일링
+scaler = MinMaxScaler()
+# scaler = StandardScaler()
+# scaler = RobustScaler()
+# scaler = MaxAbsScaler()
+train[['Age', 'DurationOfPitch', 'MonthlyIncome']] = scaler.fit_transform(train[['Age', 'DurationOfPitch', 'MonthlyIncome']])
+test[['Age', 'DurationOfPitch', 'MonthlyIncome']] = scaler.transform(test[['Age', 'DurationOfPitch', 'MonthlyIncome']])
 
 # train을 x, y로 나누고 불필요한 컬럼 제거
 train.drop(columns=['id'], inplace=True)
@@ -186,7 +210,6 @@ x = train.drop(columns=['ProdTaken'])
 y = train[['ProdTaken']]
 
 # x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.9, shuffle=True, random_state=42)  
-
 
 model = RandomForestClassifier()
 model.fit(x, y.values.ravel())
@@ -201,5 +224,5 @@ model.fit(x, y.values.ravel())
 # 데이터 submit
 y_summit = model.predict(test)
 sample_submission['ProdTaken'] = y_summit
-sample_submission.to_csv('dacon/save/sample_submission.csv', index=False)
+sample_submission.to_csv('dacon/vacation/save/sample_submission.csv', index=False)
 

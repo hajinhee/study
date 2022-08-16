@@ -13,6 +13,7 @@ from pandas import get_dummies
 datasets = load_iris()
 x = datasets.data
 y = datasets.target
+
 print(y)  # 분류모델
 '''
 [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
