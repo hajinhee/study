@@ -62,20 +62,20 @@ train = train_enc.drop(columns=['id'])
 test = test.drop(columns=['id'])
 
 # 학습에 사용할 정보와 예측하고자 하는 정보를 분리합니다.
-x_train = train.drop(columns=['ProdTaken'])
-y_train = train[['ProdTaken']]
+x = train.drop(columns=['ProdTaken'])
+y = train[['ProdTaken']]
 
-# x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.9, shuffle=True, random_state=42)  
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.9, shuffle=True, random_state=42)  
 
 model = RandomForestClassifier()
 model.fit(x_train, y_train.values.ravel())
 # model.fit(x, y.values.ravel())
 
-# ic('Train Accuracy : {:.2f}'.format(model.score(x_train, y_train)))
-# ic('Test Accuracy : {:.2f}'.format(model.score(x_test, y_test)))
+ic('Train Accuracy : {:.2f}'.format(model.score(x_train, y_train)))
+ic('Test Accuracy : {:.2f}'.format(model.score(x_test, y_test)))
 
-# y_pred = model.predict(x_test)
-# ic('score:', accuracy_score(y_pred, y_test)) 
+y_pred = model.predict(x_test)
+ic('score:', accuracy_score(y_pred, y_test)) 
 
 
 # 데이터 submit

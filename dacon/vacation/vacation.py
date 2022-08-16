@@ -9,6 +9,8 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import MinMaxScaler,StandardScaler,RobustScaler,MaxAbsScaler
+
 
 
 # 데이터 준비
@@ -141,19 +143,12 @@ MonthlyIncome               133
 ProdTaken    0
 '''
 
-# # 나이 mapping 
-# age_mapping = {'Unknown': 0, 'Teenager': 1, 'Young Adult': 2, 'Adult': 3, 'Senior': 4}
-# bins = [-1, 0, 19, 30, 50, np.inf]  # scaling
-# labels = ['Unknown', 'Teenager', 'Young Adult', 'Adult', 'Senior']
-# for these in [train, test]:
-#     these['Age'] = pd.cut(these['Age'], bins, labels=labels)
-#     these['Age'] = these['Age'].map(age_mapping)
-
 # 고객의 제품 인지 방법 (회사의 홍보 or 스스로 검색) mapping
 for these in [train, test]:
-    these['TypeofContact'] = these['TypeofContact'].map({'Unknown': 0, 'Company Invited': 1, 'Self Enquiry': 2})
+    these['TypeofContact'] = these['TypeofContact'].map({'Unknown': 0, 'Company Invited': 2, 'Self Enquiry': 1})
 
 # 성별 mapping
+
 for these in [train, test]:
     these['Gender'] = these['Gender'].map({'Male': 0, 'Female': 1, 'Fe Male': 1})
 
@@ -162,37 +157,22 @@ for these in [train, test]:
     these['Occupation'] = these['Occupation'].map({'Salaried': 0, 'Small Business': 1, 'Large Business': 2, 'Free Lancer':3})
 
 # 영업 사원이 제시한 상품 mapping
+
 for these in [train, test]:
-    these['ProductPitched'] = these['ProductPitched'].map({'Basic': 0, 'Deluxe': 1, 'Standard': 2, 'Super Deluxe':3, 'King': 4})
+    these['ProductPitched'] = these['ProductPitched'].map({'Super Deluxe': 0, 'King': 1, 'Deluxe': 2, 'Standard':3, 'Basic': 4})
 
 # 결혼 여부 mapping
+
 for these in [train, test]:
-    these['MaritalStatus'] = these['MaritalStatus'].map({'Married': 0, 'Divorced': 1, 'Single': 2, 'Unmarried':3})
+    these['MaritalStatus'] = these['MaritalStatus'].map({'Divorced': 0, 'Married': 1, 'Unmarried': 2, 'Single':3})
 
 # 직급 mapping
 for these in [train, test]:
-    these['Designation'] = these['Designation'].map({'Executive': 0, 'Manager': 1, 'Senior Manager': 2, 'AVP':3, 'VP': 4})
+    these['Designation'] = these['Designation'].map({'AVP': 0, 'VP': 1, 'Manager': 2, 'Senior Manager':3, 'Executive': 4})
 
-# # 영업 사원이 고객에게 제공하는 프레젠테이션 기간 mapping
-# bins = [0, 5, 15, 25, 36]
-# labels = [0, 1, 2, 3]
-# for these in [train, test]:
-#     these['DurationOfPitch'] = pd.cut(these['DurationOfPitch'], bins, labels=labels)
-
-# # 평균 연간 여행 횟수 mapping
-# bins = [1, 3, 6, 19]
-# labels = [0, 1, 2]
-# for these in [train, test]:
-#     these['NumberOfTrips'] = pd.cut(these['NumberOfTrips'], bins, labels=labels) 
-
-# 월급여 mapping
-# bins = [0, 20000, 25000, 35000, np.inf]
-# labels = [0, 1, 2, 3]
-# for these in [train, test]:
-#     these['MonthlyIncome'] = pd.cut(these['MonthlyIncome'], bins, labels=labels)
 
 # 결측치 제거
-ls = ['TypeofContact', 'Age', 'MonthlyIncome', 'DurationOfPitch', 'NumberOfTrips', 'NumberOfFollowups',
+ls = ['TypeofContact', 'MonthlyIncome', 'Age', 'DurationOfPitch', 'NumberOfTrips', 'NumberOfFollowups',
 'PreferredPropertyStar', 'NumberOfChildrenVisiting']
 for these in [train, test]:
     for i in ls:
@@ -205,17 +185,17 @@ test.drop(columns=['id'], inplace=True)
 x = train.drop(columns=['ProdTaken'])
 y = train[['ProdTaken']]
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.9, shuffle=True, random_state=42)  
+# x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.9, shuffle=True, random_state=42)  
 
 
 model = RandomForestClassifier()
-model.fit(x_train, y_train)
+model.fit(x, y.values.ravel())
 
-ic('Train Accuracy : {:.2f}'.format(model.score(x_train, y_train)))
-ic('Test Accuracy : {:.2f}'.format(model.score(x_test, y_test)))
+# ic('Train Accuracy : {:.2f}'.format(model.score(x_train, y_train)))
+# ic('Test Accuracy : {:.2f}'.format(model.score(x_test, y_test)))
 
-y_pred = model.predict(x_test)
-ic('score:', accuracy_score(y_pred, y_test)) 
+# y_pred = model.predict(x_test)
+# ic('score:', accuracy_score(y_pred, y_test)) 
 
 
 # 데이터 submit
