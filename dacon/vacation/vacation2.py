@@ -17,7 +17,7 @@ train = pd.read_csv('dacon/vacation/data/train.csv')
 test = pd.read_csv('dacon/vacation/data/test.csv') 
 sample_submission = pd.read_csv('dacon/vacation/data/sample_submission.csv')
 
-# 결측치를 처리하는 함수를 작성합니다.
+# 결측치 처리
 value = 0
 def handle_na(data):
     temp = data.copy()
@@ -40,21 +40,19 @@ encoder.transform(train_nona['TypeofContact'])
 
 train_enc = train_nona.copy()
 
-# 모든 문자형 변수에 대해 encoder를 적용합니다.
+# LabelEncoder
 object_columns = ['TypeofContact', 'Occupation', 'Gender', 'ProductPitched', 'MaritalStatus', 'Designation']
 for o_col in object_columns:
     encoder = LabelEncoder()
     encoder.fit(train_enc[o_col])
     train_enc[o_col] = encoder.transform(train_enc[o_col])
 
-# 결측치 처리
 test = handle_na(test)
-
-# 문자형 변수 전처리
 for o_col in object_columns:
     encoder = LabelEncoder()
     encoder.fit(train_nona[o_col])
     test[o_col] = encoder.transform(test[o_col])
+
 
 # 스케일링
 # scaler = MinMaxScaler()
@@ -65,18 +63,16 @@ train[['Age', 'DurationOfPitch', 'MonthlyIncome']] = scaler.fit_transform(train[
 test[['Age', 'DurationOfPitch', 'MonthlyIncome']] = scaler.transform(test[['Age', 'DurationOfPitch', 'MonthlyIncome']])
 
 
-# 분석할 의미가 없는 칼럼을 제거합니다.
+# 불필요한 컬럼 제거
 train = train_enc.drop(columns=['id','NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'MonthlyIncome'])
 test = test.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'MonthlyIncome'])
-
-# 학습에 사용할 정보와 예측하고자 하는 정보를 분리합니다.
 x = train.drop(columns=['ProdTaken'])
 y = train[['ProdTaken']]
 
 x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.9, shuffle=True, random_state=42)  
 
 model = RandomForestClassifier()
-model.fit(x_train, y_train)
+model.fit(x, y)
 # model.fit(x, y.values.ravel())
 
 ic('Train Accuracy : {:.2f}'.format(model.score(x_train, y_train)))
