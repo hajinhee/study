@@ -51,45 +51,6 @@ Data columns (total 20 columns):
  19  ProdTaken                 1955 non-null   int64
 dtypes: float64(7), int64(7), object(6)
 '''
-# ic(test.info())
-'''
-<class 'pandas.core.frame.DataFrame'>
-RangeIndex: 2933 entries, 0 to 2932
-Data columns (total 19 columns):
- #   Column                    Non-Null Count  Dtype
----  ------                    --------------  -----
- 0   id                        2933 non-null   int64
- 1   Age                       2801 non-null   float64
- 2   TypeofContact             2918 non-null   object
- 3   CityTier                  2933 non-null   int64
- 4   DurationOfPitch           2784 non-null   float64
- 5   Occupation                2933 non-null   object
- 6   Gender                    2933 non-null   object
- 7   NumberOfPersonVisiting    2933 non-null   int64
- 8   NumberOfFollowups         2901 non-null   float64
- 9   ProductPitched            2933 non-null   object
- 10  PreferredPropertyStar     2917 non-null   float64
- 11  MaritalStatus             2933 non-null   object
- 12  NumberOfTrips             2850 non-null   float64
- 13  Passport                  2933 non-null   int64
- 14  PitchSatisfactionScore    2933 non-null   int64
- 15  OwnCar                    2933 non-null   int64
- 16  NumberOfChildrenVisiting  2894 non-null   float64
- 17  Designation               2933 non-null   object
- 18  MonthlyIncome             2800 non-null   float64
-dtypes: float64(7), int64(6), object(6)
-'''
-# ic(sample_submission.info())
-'''
-<class 'pandas.core.frame.DataFrame'>
-RangeIndex: 2933 entries, 0 to 2932
-Data columns (total 2 columns):
- #   Column     Non-Null Count  Dtype
----  ------     --------------  -----
- 0   id         2933 non-null   int64
- 1   ProdTaken  2933 non-null   int64
-dtypes: int64(2)
-'''
 
 # 데이터 시각화
 # plt.hist(train.ProdTaken)
@@ -196,33 +157,33 @@ for these in [train, test]:
         these[col] = these[col].fillna(train[col].mean())
 
 # 스케일링
-scaler = MinMaxScaler()
-# scaler = StandardScaler()
+# scaler = MinMaxScaler()
+scaler = StandardScaler()
 # scaler = RobustScaler()
 # scaler = MaxAbsScaler()
 train[['Age', 'DurationOfPitch', 'MonthlyIncome']] = scaler.fit_transform(train[['Age', 'DurationOfPitch', 'MonthlyIncome']])
 test[['Age', 'DurationOfPitch', 'MonthlyIncome']] = scaler.transform(test[['Age', 'DurationOfPitch', 'MonthlyIncome']])
 
 # train을 x, y로 나누고 불필요한 컬럼 제거
-train.drop(columns=['id'], inplace=True)
-test.drop(columns=['id'], inplace=True)
+train.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'MonthlyIncome'], inplace=True)
+test.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'MonthlyIncome'], inplace=True)
 x = train.drop(columns=['ProdTaken'])
 y = train[['ProdTaken']]
 
-# x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.9, shuffle=True, random_state=42)  
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.9, shuffle=True, random_state=42)  
 
 model = RandomForestClassifier()
-model.fit(x, y.values.ravel())
+model.fit(x_train, y_train.values.ravel())
 
-# ic('Train Accuracy : {:.2f}'.format(model.score(x_train, y_train)))
-# ic('Test Accuracy : {:.2f}'.format(model.score(x_test, y_test)))
+ic('Train Accuracy : {:.2f}'.format(model.score(x_train, y_train)))
+ic('Test Accuracy : {:.2f}'.format(model.score(x_test, y_test)))
 
-# y_pred = model.predict(x_test)
-# ic('score:', accuracy_score(y_pred, y_test)) 
+y_pred = model.predict(x_test)
+ic('score:', accuracy_score(y_pred, y_test)) 
 
 
 # 데이터 submit
 y_summit = model.predict(test)
 sample_submission['ProdTaken'] = y_summit
-sample_submission.to_csv('dacon/vacation/save/sample_submission.csv', index=False)
+sample_submission.to_csv('dacon/vacation/save/sample_submission11.csv', index=False)
 

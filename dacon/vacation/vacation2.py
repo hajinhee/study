@@ -1,4 +1,3 @@
-from cProfile import label
 import os
 from re import I, X
 import sys
@@ -10,12 +9,13 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import MinMaxScaler,StandardScaler,RobustScaler,MaxAbsScaler
 
 
 # 데이터 준비
-train = pd.read_csv('dacon/data/train.csv')
-test = pd.read_csv('dacon/data/test.csv') 
-sample_submission = pd.read_csv('dacon/data/sample_submission.csv')
+train = pd.read_csv('dacon/vacation/data/train.csv')
+test = pd.read_csv('dacon/vacation/data/test.csv') 
+sample_submission = pd.read_csv('dacon/vacation/data/sample_submission.csv')
 
 # 결측치를 처리하는 함수를 작성합니다.
 value = 0
@@ -56,10 +56,18 @@ for o_col in object_columns:
     encoder.fit(train_nona[o_col])
     test[o_col] = encoder.transform(test[o_col])
 
+# 스케일링
+# scaler = MinMaxScaler()
+scaler = StandardScaler()
+# scaler = RobustScaler()
+# scaler = MaxAbsScaler()
+train[['Age', 'DurationOfPitch', 'MonthlyIncome']] = scaler.fit_transform(train[['Age', 'DurationOfPitch', 'MonthlyIncome']])
+test[['Age', 'DurationOfPitch', 'MonthlyIncome']] = scaler.transform(test[['Age', 'DurationOfPitch', 'MonthlyIncome']])
+
 
 # 분석할 의미가 없는 칼럼을 제거합니다.
-train = train_enc.drop(columns=['id'])
-test = test.drop(columns=['id'])
+train = train_enc.drop(columns=['id','NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'MonthlyIncome'])
+test = test.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'MonthlyIncome'])
 
 # 학습에 사용할 정보와 예측하고자 하는 정보를 분리합니다.
 x = train.drop(columns=['ProdTaken'])
@@ -68,7 +76,7 @@ y = train[['ProdTaken']]
 x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.9, shuffle=True, random_state=42)  
 
 model = RandomForestClassifier()
-model.fit(x_train, y_train.values.ravel())
+model.fit(x_train, y_train)
 # model.fit(x, y.values.ravel())
 
 ic('Train Accuracy : {:.2f}'.format(model.score(x_train, y_train)))
@@ -81,4 +89,4 @@ ic('score:', accuracy_score(y_pred, y_test))
 # 데이터 submit
 y_summit = model.predict(test)
 sample_submission['ProdTaken'] = y_summit
-sample_submission.to_csv('dacon/save/sample_submission.csv', index=False)
+sample_submission.to_csv('dacon/vacation/save/sample_submission4.csv', index=False)
