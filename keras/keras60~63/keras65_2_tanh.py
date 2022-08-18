@@ -1,0 +1,8 @@
+import numpy as np, matplotlib.pyplot as plt
+
+x = np.arange(-5, 5, 0.1)
+y = np.tanh(x)              # 내장함수가 들어있다.
+                            # sigmoid는 0과 1사이 tanh는 -1과 1 사이
+plt.plot(x,y)
+plt.grid()
+plt.show()

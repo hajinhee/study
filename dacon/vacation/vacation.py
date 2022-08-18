@@ -12,6 +12,8 @@ from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import MinMaxScaler,StandardScaler,RobustScaler,MaxAbsScaler
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_val_score
 
 
 
@@ -23,92 +25,18 @@ sample_submission = pd.read_csv('dacon/vacation/data/sample_submission.csv')
 
 # 데이터 확인
 # ic(train.info())
-'''
-<class 'pandas.core.frame.DataFrame'>
-RangeIndex: 1955 entries, 0 to 1954
-Data columns (total 20 columns):
- #   Column                    Non-Null Count  Dtype
----  ------                    --------------  -----
- 0   id                        1955 non-null   int64
- 1   Age                       1861 non-null   float64
- 2   TypeofContact             1945 non-null   object
- 3   CityTier                  1955 non-null   int64
- 4   DurationOfPitch           1853 non-null   float64
- 5   Occupation                1955 non-null   object
- 6   Gender                    1955 non-null   object
- 7   NumberOfPersonVisiting    1955 non-null   int64
- 8   NumberOfFollowups         1942 non-null   float64
- 9   ProductPitched            1955 non-null   object
- 10  PreferredPropertyStar     1945 non-null   float64
- 11  MaritalStatus             1955 non-null   object
- 12  NumberOfTrips             1898 non-null   float64
- 13  Passport                  1955 non-null   int64
- 14  PitchSatisfactionScore    1955 non-null   int64
- 15  OwnCar                    1955 non-null   int64
- 16  NumberOfChildrenVisiting  1928 non-null   float64
- 17  Designation               1955 non-null   object
- 18  MonthlyIncome             1855 non-null   float64
- 19  ProdTaken                 1955 non-null   int64
-dtypes: float64(7), int64(7), object(6)
-'''
 
 # 데이터 시각화
 # plt.hist(train.ProdTaken)
 # plt.show()
 
-
 # 전처리
 # ic(train.isna().sum())
-'''
-Age                          94
-TypeofContact                10
-CityTier                      0
-DurationOfPitch             102
-Occupation                    0
-Gender                        0
-NumberOfPersonVisiting        0
-NumberOfFollowups            13
-ProductPitched                0
-PreferredPropertyStar        10
-MaritalStatus                 0
-NumberOfTrips                57
-Passport                      0
-PitchSatisfactionScore        0
-OwnCar                        0
-NumberOfChildrenVisiting     27
-Designation                   0
-MonthlyIncome               100
-ProdTaken                     0
-'''
 # ic(test.isna().sum())
-'''
-Age                         132
-TypeofContact                15
-CityTier                      0
-DurationOfPitch             149
-Occupation                    0
-Gender                        0
-NumberOfPersonVisiting        0
-NumberOfFollowups            32
-ProductPitched                0
-PreferredPropertyStar        16
-MaritalStatus                 0
-NumberOfTrips                83
-Passport                      0
-PitchSatisfactionScore        0
-OwnCar                        0
-NumberOfChildrenVisiting     39
-Designation                   0
-MonthlyIncome               133
-'''
 # ic(sample_submission.isna().sum())
-'''
-ProdTaken    0
-'''
 
-#상관관계 분석도
+# 상관관계 분석도
 plt.figure(figsize=(10,8))
-
 heat_table = train.corr()
 mask = np.zeros_like(heat_table)
 mask[np.triu_indices_from(mask)] = True
@@ -117,7 +45,6 @@ heatmap_ax.set_xticklabels(heatmap_ax.get_xticklabels(), fontsize=10, rotation=9
 heatmap_ax.set_yticklabels(heatmap_ax.get_yticklabels(), fontsize=10)
 plt.title('correlation between features', fontsize=20)
 # plt.show()
-
 
 # 고객의 제품 인지 방법 (회사의 홍보 or 스스로 검색) mapping
 for these in [train, test]:
@@ -143,36 +70,38 @@ for these in [train, test]:
 for these in [train, test]:
     these['Designation'] = these['Designation'].map({'AVP': 0, 'VP': 1, 'Manager': 2, 'Senior Manager':3, 'Executive': 4})
 
-
 # 결측치 처리
-ls = ['TypeofContact', 'DurationOfPitch', ]
+ls = [ 'Age', 'TypeofContact', 'DurationOfPitch', 'PreferredPropertyStar']
 for these in [train, test]:
     for col in ls:
         these[col].fillna(0, inplace=True)
 
-mean_cols = ['Age','NumberOfFollowups','PreferredPropertyStar', 'MonthlyIncome',
-            'NumberOfTrips','NumberOfChildrenVisiting']
-for these in [train, test]:
-    for col in mean_cols:
-        these[col] = these[col].fillna(train[col].mean())
+# mean_cols = []
+# for these in [train, test]:
+#     for col in mean_cols:
+#         these[col] = these[col].fillna(train[col].mean())
+
+# for these in [train, test]:
+#         these['PreferredPropertyStar'].fillna(these.groupby('NumberOfTrips')['PreferredPropertyStar'].transform('mean'), inplace=True)
 
 # 스케일링
 # scaler = MinMaxScaler()
 scaler = StandardScaler()
 # scaler = RobustScaler()
 # scaler = MaxAbsScaler()
-train[['Age', 'DurationOfPitch', 'MonthlyIncome']] = scaler.fit_transform(train[['Age', 'DurationOfPitch', 'MonthlyIncome']])
-test[['Age', 'DurationOfPitch', 'MonthlyIncome']] = scaler.transform(test[['Age', 'DurationOfPitch', 'MonthlyIncome']])
+train[['Age', 'DurationOfPitch']] = scaler.fit_transform(train[['Age', 'DurationOfPitch']])
+test[['Age', 'DurationOfPitch']] = scaler.transform(test[['Age', 'DurationOfPitch']])
 
 # train을 x, y로 나누고 불필요한 컬럼 제거
-train.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'MonthlyIncome'], inplace=True)
-test.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'MonthlyIncome'], inplace=True)
-x = train.drop(columns=['ProdTaken'])
+train.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'MonthlyIncome', 'NumberOfTrips', 'NumberOfFollowups'], axis=1, inplace=True)
+test.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'MonthlyIncome', 'NumberOfTrips', 'NumberOfFollowups'], axis=1, inplace=True)
+x = train.drop(columns=['ProdTaken'], axis=1)
 y = train[['ProdTaken']]
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.9, shuffle=True, random_state=42)  
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, shuffle=True, random_state=66)  
 
-model = RandomForestClassifier()
+model = RandomForestClassifier(n_jobs=-1)
+# model.fit(x, y.values.ravel())
 model.fit(x_train, y_train.values.ravel())
 
 ic('Train Accuracy : {:.2f}'.format(model.score(x_train, y_train)))
@@ -181,9 +110,13 @@ ic('Test Accuracy : {:.2f}'.format(model.score(x_test, y_test)))
 y_pred = model.predict(x_test)
 ic('score:', accuracy_score(y_pred, y_test)) 
 
+# KFold 교차검증
+# k_fold = KFold(n_splits=10, shuffle=True, random_state=0)
+# score = cross_val_score(RandomForestClassifier(), x, y, cv=k_fold, n_jobs=1, scoring='accuracy')
+# ic('k_fold_score:', score) 
 
 # 데이터 submit
 y_summit = model.predict(test)
 sample_submission['ProdTaken'] = y_summit
-sample_submission.to_csv('dacon/vacation/save/sample_submission11.csv', index=False)
+sample_submission.to_csv('dacon/vacation/save/sample_submission.csv', index=False)
 

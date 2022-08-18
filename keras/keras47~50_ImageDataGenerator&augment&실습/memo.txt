@@ -1,0 +1,21 @@
+'''
+flow로 데이터 x,y따로 받아와서 이미지제너레이터 해주는 작업은 여기 단계가 아니고 그 이후.       
+원본6만개 + 증폭변환4만개 할꺼고 10만개 완성되면 그걸 train&val&test 나눠줄거니까.
+
+train_train = train_datagen.flow(
+    x_train,y_train,
+    batch_size=10,shuffle=True,seed=66,
+    #save_to_dir='../_temp',
+    subset='training'
+)
+train_val = train_datagen.flow(
+    x_train,y_train,
+    batch_size=10,shuffle=True,seed=66,
+    #save_to_dir='../_temp',
+    subset='validation'
+)
+test = test_datagen.flow(
+    x_test,y_test,
+    batch_size=10
+)
+'''
