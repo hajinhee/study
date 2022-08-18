@@ -98,7 +98,7 @@ test.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', '
 x = train.drop(columns=['ProdTaken'], axis=1)
 y = train[['ProdTaken']]
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, shuffle=True, random_state=66)  
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.95, shuffle=True, random_state=66)  
 
 model = RandomForestClassifier(n_jobs=-1)
 # model.fit(x, y.values.ravel())
@@ -109,6 +109,9 @@ ic('Test Accuracy : {:.2f}'.format(model.score(x_test, y_test)))
 
 y_pred = model.predict(x_test)
 ic('score:', accuracy_score(y_pred, y_test)) 
+
+y_pred = model.predict(test)
+ic(np.unique(y_pred, return_counts=True))
 
 # KFold 교차검증
 # k_fold = KFold(n_splits=10, shuffle=True, random_state=0)
