@@ -1,113 +1,95 @@
-#0.내가쓸 기능들 import
+from enum import unique
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, SimpleRNN, LSTM, GRU, Activation
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler,StandardScaler,RobustScaler,MaxAbsScaler
 from tensorflow.keras.callbacks import EarlyStopping
-
-# 개별 import
 from sklearn.datasets import load_diabetes
 from sklearn.metrics import r2_score
 import numpy as np
-
-#1.데이터로드 및 정제
-
-### 1-1.로드영역    데이터 형태를 x,y로 정의해주세요.
-datasets = load_diabetes()
-x = datasets.data          
-y = datasets.target 
-
-### 1-2. RNN하기위해 shape변환
-
-#x값 관측.    x의 shape를 기록해주세요. (442, 10)
-#
-# print(x.shape)      
-
-#y값 관측.    y의 shape를 기록해주세요. 이 모델은 -> y label값이 수도없이 많다. -> 회귀모델
-
-#numpy      
-#print(np.unique(y,return_counts=True))       
-
-#pandas   
-#print(y,value_counts())
-
-
-### 1-3. 상관관계 분석 후 x칼럼제거.        스킵 가능.------------------------------------------------
-#데이터가 np일 경우 pandas import해서 변환후 작업.
+from icecream import ic
 import pandas as pd
+
+#1. 데이터로드 및 정제
+datasets = load_diabetes()
+x = datasets.data  # (442, 10) 
+y = datasets.target  # (442, ) 수많은 label -> 회귀모델
+
+'''
+[unique value 추출 방법]
+
+# 방법 1. numpy의 np.unique(return_counts=True) ---> ndarray만 가능
+# ic(np.unique(y, return_counts=True))       
+
+# 방법 2. pandas의 value_counts() ---> Dataframe column 혹은 Series만 가능
+y = pd.DataFrame(y)  # numpy --> pandas 변환
+ic(y.value_counts())  
+'''
+
+# 컬럼명 추가하기 위해 pandas로 변환
 x = pd.DataFrame(x, columns=datasets.feature_names)
+
+# 상관관계 분석 위해 y(정답) 값 x에 'ydata' 컬럼으로 추가
 x['ydata'] = y
-#print(x.corr())
-x = x.drop(['sex','ydata'],axis=1)  # drop시킬 column명 기재.
-#print(x.shape)            # 변경된 칼럼개수 확인.  기재 : (442, 9)
-#그 이후의 작업 계속해주기 위해 numpy로 변환
-x = x.to_numpy()
-#---------------------------------------------------------------------------------------------------
+ic(x.corrwith(x['ydata']))
+'''
+age      0.187889
+sex      0.043062
+bmi      0.586450
+bp       0.441482
+s1       0.212022
+s2       0.174054
+s3      -0.394789
+s4       0.430453
+s5       0.565883
+s6       0.382483
+ydata    1.000000
+'''
 
+# 불필요한 컬럼 삭제
+x.drop(['sex', 'ydata'], axis=1, inplace=True)  
 
-### 1-4. x의 shape변환
-x = x.reshape(len(x),3,3)      #len(x)뒤의 영역은 사용자 지정입니다!
+# 이후 작업 위해 다시 numpy로 변환 -> 3차원으로 변환
+x = x.to_numpy().reshape(len(x), 3, 3)    # (442, 9) -> (442, 3, 3)
 
+# 데이터셋 분리
+x_train, x_test, y_train,  y_test = train_test_split(x, y, train_size=0.8, shuffle=True, random_state=49)
 
-### 1-5. train & test분리 
-x_train,x_test,y_train,y_test = train_test_split(x,y, train_size=0.8, shuffle=True, random_state=49)
+# 스케일링 
+scaler = MinMaxScaler()  
+# RNN 사용 시 (3차원 -> 2차원 -> 3차원)
+x_train = scaler.fit_transform(x_train.reshape(len(x_train), -1)).reshape(x_train.shape)
+x_test = scaler.transform(x_test.reshape(len(x_test), -1)).reshape(x_test.shape)
+# DNN 사용 시 (3차원 -> 2차원)
+# x_train = scaler.fit_transform(x_train.reshape(len(x_train), -1))
+# x_test = scaler.transform(x_test.reshape(len(x_test), -1))
 
-
-### 1-6. scaler적용. 스킵 가능----------------------------------------------------------------------
-# 자동으로 3차원데이터를 2차원으로 만들어서 스케일링 적용하고 다시 3차원으로 적용해줌.
-scaler =MinMaxScaler()   #StandardScaler()RobustScaler()MaxAbsScaler()
-# RNN사용시 
-x_train = scaler.fit_transform(x_train.reshape(len(x_train),-1)).reshape(x_train.shape)
-x_test = scaler.transform(x_test.reshape(len(x_test),-1)).reshape(x_test.shape)
-# DNN사용시
-#x_train = scaler.fit_transform(x_train.reshape(len(x_train),-1))
-#x_test = scaler.transform(x_test.reshape(len(x_test),-1))
-#--------------------------------------------------------------------------------------------------
-
-
-#2.모델링   각 데이터에 알맞게 튜닝
+#2. 모델링  
 model = Sequential()
-model.add(SimpleRNN(10,input_shape=(x.shape[1],x.shape[2])   ,return_sequences=True))       # 공백안에 ,activation='relu'도 사용해보세요.
-model.add(LSTM(10,return_sequences=True,activation='relu'))   #                             # 두번째, 세번째 줄은 주석처리해서 1개만 사용해보세요.
-model.add(GRU(10,return_sequences=False,activation='relu'))  #  
-#model.add(Dense(50,input_dim= x.shape[1]))                                                  # DNN방식적용시 위의 RNN주석 걸고 위의 1-4에서 두번째 옵션 선택합니다.                
+model.add(SimpleRNN(10, input_shape=(x.shape[1], x.shape[2]), return_sequences=True))       
+model.add(LSTM(10, return_sequences=True, activation='relu'))                         
+model.add(GRU(10, return_sequences=False, activation='relu')) 
 model.add(Dense(64))
 model.add(Dense(32))
-model.add(Dense(16,activation="relu")) #
-model.add(Dense(8,activation="relu")) #
+model.add(Dense(16, activation='relu')) 
+model.add(Dense(8, activation='relu')) 
 model.add(Dense(4))
-model.add(Dense(1,activation = 'linear'))    # default = 'linear' 이진분류 = 'sigmoid' , 다중분류 = 'softmax' 
+model.add(Dense(1))    
 
+#3. 컴파일, 훈련
+model.compile(loss='mse', optimizer='adam')   
+es = EarlyStopping(monitor='val_loss', patience=100, mode='min', verbose=1, baseline=None, restore_best_weights=True)
+model.fit(x_train, y_train, epochs=100, batch_size=10, validation_split=0.2, verbose=1, callbacks=[es])      
 
-#3.컴파일,훈련
-model.compile(loss='mse', optimizer='adam')    # 회귀모델 = mse, 이진분류 = binary_crossentropy, 다중분류 = categorical_crossentropy, 분류는 metrics=['accuracy']
-es = EarlyStopping(monitor="val_loss", patience=100, mode='min',verbose=1,baseline=None, restore_best_weights=True)
-model.fit(x_train,y_train, epochs=10000, batch_size=10,validation_split=0.2,verbose=1,callbacks=[es])        # batch_size 센스껏 조절!
+#4. 평가, 예측      
+loss = model.evaluate(x_test, y_test)
+ic('loss: ', round(loss, 4))
 
-#4.평가,예측        회귀모델은 r2,  분류모델은 accuracy
+y_predict = model.predict(x_test)
+r2 = r2_score(y_test, y_predict)
+ic('r2_score: ', round(r2, 4))
 
-loss = model.evaluate(x_test,y_test)
-
-###분류모델일때 주석 해제.
-# print("----------------------loss & accuracy-------------------------")
-# print(round(loss[0],4))
-# print(round(loss[1],4))
-
-### 회귀모델일때 주석 해제.
-# print("----------------------loss값-------------------------")
-# print(round(loss,4))
-# y_predict = model.predict(x_test)
-
-# print("=====================r2score=========================")
-# r2 = r2_score(y_test,y_predict)
-# print(round(r2,4))
-
-#5.결과 정리 창
-
-#                   DNN                 |             CNN                |               RNN
-#loss:                                                                     
-#r2  :                                                                    
-#                                                                                   RNN + MIN
-#                                                                                       1978.7258
-#                                                                                       0.6286
-#              
+'''
+[loss]:  2060.7495
+[r2_score]:  0.6132
+'''

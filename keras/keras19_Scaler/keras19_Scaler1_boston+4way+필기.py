@@ -49,17 +49,15 @@ scaler = MinMaxScaler()
 #scaler = StandardScaler()
 #scaler = RobustScaler()
 #scaler = MaxAbsScaler()
-scaler.fit(x_train) 
-x_train = scaler.transform(x_train)    
+x_train = scaler.fit_transform(x_train)    
 x_test = scaler.transform(x_test)    
-##################################### 스케일러 설정 옵션 ########################################
 
 #2. 모델구성,모델링
 model = Sequential()
 model.add(Dense(50, input_dim=13))
 model.add(Dense(30))
-model.add(Dense(15, activation="relu")) 
-model.add(Dense(8, activation="relu")) 
+model.add(Dense(15, activation='relu')) 
+model.add(Dense(8, activation='relu')) 
 model.add(Dense(5))
 model.add(Dense(1))  # 회귀모델: linear(default값), 이진분류: sigmoid, 다중분류: softmax
 model.summary()
@@ -89,7 +87,7 @@ _________________________________________________________________
 #3. 컴파일, 훈련
 model.compile(loss='mse', optimizer='adam')  # 회귀모델: mse, 이진분류: binary_crossentropy, 다중분류: categorical_crossentropy
 
-es = EarlyStopping(monitor="val_loss", patience=50, mode='min', verbose=1, baseline=None, restore_best_weights=True)
+es = EarlyStopping(monitor='val_loss', patience=50, mode='min', verbose=1, baseline=None, restore_best_weights=True)
 model.fit(x_train, y_train, epochs=500, batch_size=1, validation_split=0.2, callbacks=[es])
 
 #4. 평가 예측
