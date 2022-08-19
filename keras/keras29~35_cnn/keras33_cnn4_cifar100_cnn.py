@@ -4,9 +4,9 @@ from tensorflow.keras.layers import Dense, Conv2D, Flatten, Dropout, Activation,
 import numpy as np
 from tensorflow.keras.datasets import cifar100  
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
+from tensorflow.keras.optimizers import Adam,Adadelta
 from tensorflow.keras.utils import to_categorical
 from sklearn.preprocessing import MinMaxScaler,StandardScaler,RobustScaler,MaxAbsScaler
-from tensorflow.keras.optimizers import Adam,Adadelta
 
 #1.데이터 로드 및 정제
 (x_train, y_train), (x_test, y_test) = cifar100.load_data()

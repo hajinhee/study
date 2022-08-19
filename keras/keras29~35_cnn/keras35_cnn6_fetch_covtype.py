@@ -46,7 +46,7 @@ model.add(Dropout(0.5))
 model.add(Dense(7, activation='softmax'))
 
 #3. 컴파일, 훈련
-model.compile(loss='categorical_crossentropy', optimizer='adam',metrics=['accuracy'])
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 es = EarlyStopping(monitor='val_loss', patience=50, mode='min', verbose=1, baseline=None, restore_best_weights=True)
 # mcp = ModelCheckpoint(monitor='val_loss', mode='auto', verbose=1, save_best_only=True, filepath=f'./_ModelCheckPoint/keras35_2_diabetes{krtime}.hdf5')
 model.fit(x_train, y_train, epochs=100, batch_size=1000, validation_split=0.111111, callbacks=[es])

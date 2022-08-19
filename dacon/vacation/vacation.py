@@ -31,7 +31,7 @@ sample_submission = pd.read_csv('dacon/vacation/data/sample_submission.csv')
 # plt.show()
 
 # 전처리
-# ic(train.isna().sum())
+ic(train.isna().sum())
 # ic(test.isna().sum())
 # ic(sample_submission.isna().sum())
 
@@ -71,18 +71,16 @@ for these in [train, test]:
     these['Designation'] = these['Designation'].map({'AVP': 0, 'VP': 1, 'Manager': 2, 'Senior Manager':3, 'Executive': 4})
 
 # 결측치 처리
-ls = [ 'Age', 'TypeofContact', 'DurationOfPitch', 'PreferredPropertyStar']
+ls = ['TypeofContact', 'DurationOfPitch']
 for these in [train, test]:
     for col in ls:
         these[col].fillna(0, inplace=True)
 
-# mean_cols = []
-# for these in [train, test]:
-#     for col in mean_cols:
-#         these[col] = these[col].fillna(train[col].mean())
+# ic(train.corrwith(train['MonthlyIncome']))
 
-# for these in [train, test]:
-#         these['PreferredPropertyStar'].fillna(these.groupby('NumberOfTrips')['PreferredPropertyStar'].transform('mean'), inplace=True)
+for these in [train, test]:
+        these['PreferredPropertyStar'].fillna(these.groupby('NumberOfTrips')['PreferredPropertyStar'].transform('mean'), inplace=True)
+        these['Age'].fillna(these['Age'].min(), inplace=True)
 
 # 스케일링
 # scaler = MinMaxScaler()
@@ -93,14 +91,16 @@ train[['Age', 'DurationOfPitch']] = scaler.fit_transform(train[['Age', 'Duration
 test[['Age', 'DurationOfPitch']] = scaler.transform(test[['Age', 'DurationOfPitch']])
 
 # train을 x, y로 나누고 불필요한 컬럼 제거
-train.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'MonthlyIncome', 'NumberOfTrips', 'NumberOfFollowups'], axis=1, inplace=True)
-test.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'MonthlyIncome', 'NumberOfTrips', 'NumberOfFollowups'], axis=1, inplace=True)
+train.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar',  'MonthlyIncome', 'NumberOfTrips', 'NumberOfFollowups'], axis=1, inplace=True)
+test.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar',  'MonthlyIncome', 'NumberOfTrips', 'NumberOfFollowups'], axis=1, inplace=True)
 x = train.drop(columns=['ProdTaken'], axis=1)
 y = train[['ProdTaken']]
 
 x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.95, shuffle=True, random_state=66)  
 
-model = RandomForestClassifier(n_jobs=-1)
+model = RandomForestClassifier(n_estimators=200, 
+                                random_state=0,
+                                n_jobs=-1)
 # model.fit(x, y.values.ravel())
 model.fit(x_train, y_train.values.ravel())
 

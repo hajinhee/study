@@ -69,8 +69,8 @@ plt.title('correlation between features', fontsize=20)
 
 
 # 스케일링
-scaler = MinMaxScaler()
-# scaler = StandardScaler()
+# scaler = MinMaxScaler()
+scaler = StandardScaler()
 # scaler = RobustScaler()
 # scaler = MaxAbsScaler()
 train[['Age', 'DurationOfPitch']] = scaler.fit_transform(train[['Age', 'DurationOfPitch']])
@@ -78,16 +78,16 @@ test[['Age', 'DurationOfPitch']] = scaler.transform(test[['Age', 'DurationOfPitc
 
 
 # 불필요한 컬럼 제거
-train = train_enc.drop(columns=['id','NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'MonthlyIncome', 'NumberOfTrips', 'NumberOfFollowups'])
-test = test.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'MonthlyIncome', 'NumberOfTrips', 'NumberOfFollowups'])
-x = train.drop(columns=['ProdTaken'])
+train = train_enc.drop(columns=['id','NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'MonthlyIncome', 'NumberOfTrips', 'NumberOfFollowups'], axis=1)
+test = test.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'MonthlyIncome', 'NumberOfTrips', 'NumberOfFollowups'], axis=1)
+x = train.drop(columns=['ProdTaken'], axis=1)
 y = train[['ProdTaken']]
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, shuffle=True, random_state=42)  
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.9, shuffle=True, random_state=66)  
 
-model = RandomForestClassifier(n_estimators = 150,
-                                random_state = 0, 
-                                n_jobs = -1)
+model = RandomForestClassifier(n_estimators=200, 
+                                random_state=0,
+                                n_jobs=-1)
 model.fit(x_train, y_train.values.ravel())
 # model.fit(x, y.values.ravel())
 
@@ -96,6 +96,10 @@ ic('Test Accuracy : {:.2f}'.format(model.score(x_test, y_test)))
 
 y_pred = model.predict(x_test)
 ic('score:', accuracy_score(y_pred, y_test)) 
+
+y_pred = model.predict(test)
+ic(np.unique(y_pred, return_counts=True))
+
 
 # 데이터 submit
 y_summit = model.predict(test)
