@@ -1,117 +1,120 @@
-#0.내가쓸 기능들 import
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, SimpleRNN, LSTM, GRU, Activation
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler,StandardScaler,RobustScaler,MaxAbsScaler
 from tensorflow.keras.callbacks import EarlyStopping
-
-# 개별 import
 from sklearn.datasets import load_breast_cancer
 import numpy as np
 from sklearn.metrics import r2_score
 from pandas import get_dummies
+from icecream import ic
+import pandas as pd
+import pandas as pd
 
-#1.데이터로드 및 정제
-
-### 1-1.로드영역    데이터 형태를 x,y로 정의해주세요.
+#1. 데이터로드 및 정제
 datasets = load_breast_cancer()
-x = datasets.data
-y = datasets.target
+x = datasets.data  # (569, 30)
+y = datasets.target  # array([0, 1]), array([212, 357] -> 이진분류
+ic(np.unique(y, return_counts=True))       
 
-### 1-2. RNN하기위해 shape변환
+'''
+[unique value 추출 방법]
+# 방법 1. 
+numpy의 np.unique(return_counts=True) ---> ndarray만 가능
+ic(np.unique(y, return_counts=True))       
 
-#x값 관측.    x의 shape를 기록해주세요.     :   (569, 30)
-#print(x.shape)      
+# 방법 2. 
+pandas의 value_counts() ---> Dataframe column 혹은 Series만 가능
+y = pd.DataFrame(y)  # numpy --> pandas 변환
+ic(y.value_counts())  
+'''
 
-#y값 관측.    y의 shape를 기록해주세요.     :   array([0, 1]), array([212, 357]     이진분류 모델. -> 원핫인코딩
-y = get_dummies(y)
+# 컬럼명 추가하기 위해 pandas로 변환
+x = pd.DataFrame(x, columns=datasets.feature_names)
+x['ydata'] = y
+# ic(x.corrwith(x['ydata']))
+'''
+mean radius               -0.730029
+mean texture              -0.415185
+mean perimeter            -0.742636
+mean area                 -0.708984
+mean smoothness           -0.358560
+mean compactness          -0.596534
+mean concavity            -0.696360
+mean concave points       -0.776614
+mean symmetry             -0.330499
+mean fractal dimension     0.012838
+radius error              -0.567134
+texture error              0.008303
+perimeter error           -0.556141
+area error                -0.548236
+smoothness error           0.067016
+compactness error         -0.292999
+concavity error           -0.253730
+concave points error      -0.408042
+symmetry error             0.006522
+fractal dimension error   -0.077972
+worst radius              -0.776454
+worst texture             -0.456903
+worst perimeter           -0.782914
+worst area                -0.733825
+worst smoothness          -0.421465
+worst compactness         -0.590998
+worst concavity           -0.659610
+worst concave points      -0.793566
+worst symmetry            -0.416294
+worst fractal dimension   -0.323872
+ydata                      1.000000
+'''
+y = get_dummies(y)  # 원핫인코딩
+ic(type(y), y.shape) # (569, 2)
 
-#numpy      
-#print(np.unique(y,return_counts=True))       
+# 불필요한 컬럼 제거
+x.drop(['symmetry error','ydata'], axis=1, inplace=True)  
+ic(x.shape)  # (569, 29) 
 
-#pandas   
-#print(y,value_counts())
+# 이후 작업(원핫인코딩&RNN)을 위해 다시 numpy로 변환 후 reshape 
+x = x.to_numpy().reshape(len(x), 1, 29)  # (569, 1, 29)
 
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, shuffle=True, random_state=49)
 
-### 1-3. 상관관계 분석 후 x칼럼제거.        스킵 가능.------------------------------------------------
-#데이터가 np일 경우 pandas import해서 변환후 작업.
-# import pandas as pd
-# x = pd.DataFrame(x, columns=datasets.feature_names)
-# x['ydata'] = y
-# #print(x.corr())
-# x = x.drop(['','ydata'],axis=1)  # drop시킬 column명 기재.
-# #print(x.shape)            # 변경된 칼럼개수 확인.  기재 : 
-# #그 이후의 작업 계속해주기 위해 numpy로 변환
-# x = x.to_numpy()
-#---------------------------------------------------------------------------------------------------
+scaler = StandardScaler()   
+# scaler = MinMaxScaler()   
+# scaler = RobustScaler()   
+# scaler = MaxAbsScaler()   
 
+# RNN 사용 시 (3차원 -> 2차원 -> 3차원)
+x_train = scaler.fit_transform(x_train.reshape(len(x_train), -1)).reshape(x_train.shape)  # (455, 1, 29) -> (455, 29) -> (455, 1, 29)
+x_test = scaler.transform(x_test.reshape(len(x_test), -1)).reshape(x_test.shape)
+# DNN 사용 시 (3차원 -> 2차원)
+# x_train = scaler.fit_transform(x_train.reshape(len(x_train), -1))
+# x_test = scaler.transform(x_test.reshape(len(x_test), -1))
 
-### 1-4. x의 shape변환
-x = x.reshape(len(x),6,5)      #len(x)뒤의 영역은 사용자 지정입니다!   DNN모델일 경우 주석처리.
-
-
-### 1-5. train & test분리 
-x_train,x_test,y_train,y_test = train_test_split(x,y, train_size=0.8, shuffle=True, random_state=49)
-
-
-### 1-6. scaler적용. 스킵 가능----------------------------------------------------------------------
-
-scaler =MinMaxScaler()   #StandardScaler()RobustScaler()MaxAbsScaler()
-
-# RNN사용시 
-# 자동으로 3차원데이터를 2차원으로 만들어서 스케일링 적용하고 다시 3차원으로 적용해줌.
-x_train = scaler.fit_transform(x_train.reshape(len(x_train),-1)).reshape(x_train.shape)
-x_test = scaler.transform(x_test.reshape(len(x_test),-1)).reshape(x_test.shape)
-
-# DNN사용시
-#x_train = scaler.fit_transform(x_train.reshape(len(x_train),-1))
-#x_test = scaler.transform(x_test.reshape(len(x_test),-1))
-#--------------------------------------------------------------------------------------------------
-
-
-#2.모델링   각 데이터에 알맞게 튜닝
+#2. 모델링 
 model = Sequential()
-model.add(SimpleRNN(10,input_shape=(x.shape[1],x.shape[2])   ,return_sequences=True))       # 공백안에 ,activation='relu'도 사용해보세요.
-model.add(LSTM(10,return_sequences=True,activation='relu'))   #                             # 두번째, 세번째 줄은 주석처리해서 1개만 사용해보세요.
-model.add(GRU(10,return_sequences=False,activation='relu'))  #  
-#model.add(Dense(50,input_dim= x.shape[1]))                                                  # DNN방식적용시 위의 RNN주석 걸고 위의 1-4에서 두번째 옵션 선택합니다.                
+model.add(SimpleRNN(10, input_shape=(x.shape[1], x.shape[2]), return_sequences=True))  # SimpleRNN     
+model.add(LSTM(10, return_sequences=True, activation='relu'))  # LSTM                         
+model.add(GRU(10, return_sequences=False, activation='relu'))  # GRU  
+#model.add(Dense(50, input_dim=x.shape[1]))                                                                
 model.add(Dense(64))
 model.add(Dense(32))
-model.add(Dense(16,activation="relu")) #
-model.add(Dense(8,activation="relu")) #
+model.add(Dense(16, activation='relu')) 
+model.add(Dense(8, activation='relu')) 
 model.add(Dense(4))
-model.add(Dense(2,activation = 'sigmoid'))    # 이진분류 = 'sigmoid' , 다중분류 = 'softmax' 
+model.add(Dense(2, activation='sigmoid'))  # 'sigmoid' -> 이진분류
+
+#3. 컴파일, 훈련
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])   
+es = EarlyStopping(monitor='val_loss', patience=100, mode='min', verbose=1, baseline=None, restore_best_weights=True)
+model.fit(x_train, y_train, epochs=1000, batch_size=10, validation_split=0.2, verbose=1, callbacks=[es])       
+
+#4. 평가, 예측 --> [평가지표] 분류모델은 'acuuracy', 회귀모델은 'r2' 사용
+loss = model.evaluate(x_test, y_test)
+ic(round(loss[0], 4))
+ic(round(loss[1], 4))
 
 
-#3.컴파일,훈련
-model.compile(loss='binary_crossentropy', optimizer='adam',metrics=['accuracy'])    # 회귀모델 = mse, 이진분류 = binary_crossentropy, 다중분류 = categorical_crossentropy, 분류는 ,metrics=['accuracy']
-es = EarlyStopping(monitor="val_loss", patience=100, mode='min',verbose=1,baseline=None, restore_best_weights=True)
-model.fit(x_train,y_train, epochs=10000, batch_size=10,validation_split=0.2,verbose=1,callbacks=[es])        # batch_size 센스껏 조절!  
-
-#4.평가,예측        회귀모델은 r2,  분류모델은 accuracy
-
-loss = model.evaluate(x_test,y_test)
-
-###분류모델일때 주석 해제.
-# print("----------------------loss & accuracy-------------------------")
-# print(round(loss[0],4))
-# print(round(loss[1],4))
-
-### 회귀모델일때 주석 해제.
-# print("----------------------loss값-------------------------")
-# print(round(loss,4))
-# y_predict = model.predict(x_test)
-
-# print("=====================r2score=========================")
-# r2 = r2_score(y_test,y_predict)
-# print(round(r2,4))
-
-#5.결과 정리 창
-
-#                   DNN                 |             CNN                |               RNN
-#loss:                                                                     
-#                                                                    
-#                                                                                   MIN + RNN                          
-#loss:                                                                                  0.1033           
-#acc:                                                                                   0.9561
-#              
+'''
+[loss]: 0.1027
+[accuracy]: 0.9737
+'''
