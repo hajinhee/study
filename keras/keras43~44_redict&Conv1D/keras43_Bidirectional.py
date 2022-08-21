@@ -25,11 +25,11 @@ model.add(Dense(1))
 #3. 컴파일, 훈련
 model.compile(loss='mse', optimizer='adam') 
 es = EarlyStopping(monitor='loss', patience=10, mode='min', verbose=1, baseline=None, restore_best_weights=True)
-model.fit(x, y, epochs=100, batch_size=1, callbacks=[es])  
+model.fit(x, y, epochs=300, batch_size=1, callbacks=[es])  
 
 #4. 평가, 예측
 model.evaluate(x, y)
 y_pred = np.array([5, 6, 7]).reshape(1, 3, 1)  
 result = model.predict(y_pred)   
-print('[y_pred]: ', result)
+print('[y_pred]: ', result)  #  [[7.818365]]  loss: 4.3026e-05
 

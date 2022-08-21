@@ -16,7 +16,7 @@ print(y_train.shape)  # (50000, 1) 2d
 print(y_test.shape)  # (10000, 1) 2d
 print(np.unique(y_train, return_counts=True))  # (array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])) --> 다중분류
 
-# 다중분류 -> 원핫인코딩(1차원 데이터만 가능)
+# 원핫인코딩(1차원 데이터만 가능)
 y_train = y_train.reshape(len(y_train))  # (50000, ) 1d --> 원핫인코딩은 1차원 형태의 데이터를 처리하므로 1차원 벡터형식으로 reshape 한다.
 y_train = get_dummies(y_train)  # (50000, 10) 2d
 y_test = y_test.reshape(len(y_test))  # (10000, ) 1d 
