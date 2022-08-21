@@ -11,7 +11,7 @@ from icecream import ic
 #1. 데이터 로드 및 전처리
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 # print(x_train.shape, y_train.shape) # (60000, 28, 28) (60000,)
-# print(x_test.shape, y_test.shape)   # (10000, 28, 28) (10000,)
+# print(x_test.shape, y_test.shape)  # (10000, 28, 28) (10000,)
 
 x_train = x_train.reshape(60000, 28, 28, 1)  # reshpe: 일렬로 만든 후 다시 나눠서 재배열하는 개념
 x_test = x_test.reshape(10000, 28, 28, 1)  # 회색조(채널 1) 이미지
@@ -22,7 +22,6 @@ ic(np.unique(y_train, return_counts=True))  # pandas의 value.counts와 같은 �
 [5923, 6742, 5958, 6131, 5842, 5421, 5918, 6265, 5851, 5949]                                           
 '''
 ic(y_train.shape)  # (60000,)
-
 
 enco = OneHotEncoder(sparse=False)  # sparse=True가 디폴트로 Matrix를 반환한다. 원핫인코딩에서 필요한 것은 array이므로 sparse옵션에 False를 넣어준다.
 y_train = y_train.reshape(-1,1)  # (60000, 1) --> 열에 맞춰 행은 가변적으로

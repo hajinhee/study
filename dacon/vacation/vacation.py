@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import KFold
 from sklearn.model_selection import cross_val_score
+from tensorflow.keras.utils import to_categorical 
 
 
 
@@ -21,7 +22,6 @@ from sklearn.model_selection import cross_val_score
 train = pd.read_csv('dacon/vacation/data/train.csv')
 test = pd.read_csv('dacon/vacation/data/test.csv') 
 sample_submission = pd.read_csv('dacon/vacation/data/sample_submission.csv')
-
 
 # 데이터 확인
 # ic(train.info())
@@ -99,7 +99,6 @@ y = train[['ProdTaken']]
 x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.95, shuffle=True, random_state=66)  
 
 model = RandomForestClassifier(n_estimators=200, 
-                                random_state=0,
                                 n_jobs=-1)
 # model.fit(x, y.values.ravel())
 model.fit(x_train, y_train.values.ravel())
@@ -121,5 +120,5 @@ ic(np.unique(y_pred, return_counts=True))
 # 데이터 submit
 y_summit = model.predict(test)
 sample_submission['ProdTaken'] = y_summit
-sample_submission.to_csv('dacon/vacation/save/sample_submission.csv', index=False)
+sample_submission.to_csv('dacon/vacation/save/sample_submission___1.csv', index=False)
 

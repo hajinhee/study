@@ -63,7 +63,6 @@ x_test = scaler.transform(x_test.reshape(len(x_test), -1)).reshape(x_test.shape)
 # x_train = scaler.fit_transform(x_train.reshape(len(x_train), -1))
 # x_test = scaler.transform(x_test.reshape(len(x_test), -1))
 
-
 #2. 모델링  
 model = Sequential()
 model.add(SimpleRNN(10, input_shape=(x_train.shape[1], x_train.shape[2]), return_sequences=True))      
@@ -77,45 +76,21 @@ model.add(Dense(8, activation='relu'))
 model.add(Dense(4))
 model.add(Dense(1, activation='linear'))    
 
-# #3.컴파일,훈련
-# model.compile(loss='mse', optimizer='adam')    # 회귀모델 = mse, 이진분류 = binary_crossentropy, 다중분류 = categorical_crossentropy, 분류는 ,metrics=['accuracy']
-# es = EarlyStopping(monitor="val_loss", patience=1, mode='min',verbose=1,baseline=None, restore_best_weights=True)
-# model.fit(x_train,y_train, epochs=10000, batch_size=100,validation_split=0.2,verbose=1,callbacks=[es])        # batch_size 센스껏 조절!  
+#3. 컴파일, 훈련
+model.compile(loss='mse', optimizer='adam')    
+es = EarlyStopping(monitor='val_loss', patience=10, mode='min', verbose=1, baseline=None, restore_best_weights=True)
+model.fit(x_train, y_train, epochs=500, batch_size=1000, validation_split=0.2, verbose=1, callbacks=[es])     
 
+#4. 평가, 예측      
+loss = model.evaluate(x_test, y_test)
+print('[loss]: ', round(loss, 4))
 
-
-# #4.평가,예측        회귀모델은 r2,  분류모델은 accuracy
-
-# loss = model.evaluate(x_test,y_test)
-
-# ###분류모델일때 주석 해제.
-# # print("----------------------loss & accuracy-------------------------")
-# # print(round(loss[0],4))
-# # print(round(loss[1],4))
-
-# ## 회귀모델일때 주석 해제.
-# print("----------------------loss값-------------------------")
-# print(round(loss,4))
-# y_predict = model.predict(x_test)
-
-# print("=====================r2score=========================")
-# r2 = r2_score(y_test,y_predict)
-# print(round(r2,4))
-
-# #5.결과 정리 창
-
-# #                   DNN                 |             CNN                |               RNN
-# #loss:                                                                     
-# #acc:                                                                    
-# #               DNN + MIN                                                                      
-# #loss:          22641.2168                                                                             
-# #acc:             0.3301                                                                             
-
-# # 이 모델은 rmse활용 및 데이터 파일을 저장하고 제출까지 해야함. 그리고 추가로 제출파일 직접 확인해서 잘 되었나 봐야함.
-# # RNN DNN 방식에 맞춰서 test_file도 같이 변환.
-
-# print(test_file.shape)
-# #results = model.predict(test_file)
-# #submit_file['count'] = results
-# ##print(submit_file[:10])
-# #submit_file.to_csv(path + '4thtest.csv', index=False)
+y_predict = model.predict(x_test)
+r2 = r2_score(y_test, y_predict)
+print('[r2_score]: ', round(r2, 4))
+ic(y_test.shape)  # (2178,)
+ic(y_predict.shape)  # (2178, 1)
+'''
+[loss]:  11563.0723
+[r2_score]:  0.6579
+'''
