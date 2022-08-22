@@ -16,8 +16,6 @@ from sklearn.model_selection import KFold
 from sklearn.model_selection import cross_val_score
 from tensorflow.keras.utils import to_categorical 
 
-
-
 # 데이터 준비
 train = pd.read_csv('dacon/vacation/data/train.csv')
 test = pd.read_csv('dacon/vacation/data/test.csv') 
@@ -31,7 +29,7 @@ sample_submission = pd.read_csv('dacon/vacation/data/sample_submission.csv')
 # plt.show()
 
 # 전처리
-ic(train.isna().sum())
+# ic(train.isna().sum())
 # ic(test.isna().sum())
 # ic(sample_submission.isna().sum())
 
@@ -71,16 +69,16 @@ for these in [train, test]:
     these['Designation'] = these['Designation'].map({'AVP': 0, 'VP': 1, 'Manager': 2, 'Senior Manager':3, 'Executive': 4})
 
 # 결측치 처리
-ls = ['TypeofContact', 'DurationOfPitch']
+ls = ['TypeofContact', 'DurationOfPitch', 'Age', 'PreferredPropertyStar']
 for these in [train, test]:
     for col in ls:
         these[col].fillna(0, inplace=True)
 
 # ic(train.corrwith(train['MonthlyIncome']))
 
-for these in [train, test]:
-        these['PreferredPropertyStar'].fillna(these.groupby('NumberOfTrips')['PreferredPropertyStar'].transform('mean'), inplace=True)
-        these['Age'].fillna(these['Age'].min(), inplace=True)
+# for these in [train, test]:
+        # these['PreferredPropertyStar'].fillna(these.groupby('NumberOfTrips')['PreferredPropertyStar'].transform('mean'), inplace=True)
+        # these['Age'].fillna(these['Age'].min(), inplace=True)
 
 # 스케일링
 # scaler = MinMaxScaler()
@@ -120,5 +118,5 @@ ic(np.unique(y_pred, return_counts=True))
 # 데이터 submit
 y_summit = model.predict(test)
 sample_submission['ProdTaken'] = y_summit
-sample_submission.to_csv('dacon/vacation/save/sample_submission___1.csv', index=False)
+sample_submission.to_csv('dacon/vacation/save/sample_submission.csv', index=False)
 
