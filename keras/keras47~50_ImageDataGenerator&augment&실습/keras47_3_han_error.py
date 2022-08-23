@@ -1,5 +1,7 @@
 import numpy as np
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Conv2D, Flatten
 
 #1. DATA
 train_datagen = ImageDataGenerator(
@@ -52,8 +54,7 @@ xy_test = test_datagen.flow_from_directory(
 
 
 #2. MODEL
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Conv2D, Flatten
+
 
 model = Sequential()
 model.add(Conv2D(32, (2,2), input_shape=(150,150,3)))
