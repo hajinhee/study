@@ -33,17 +33,17 @@ xy_train = train_datagen.flow_from_directory(
     'keras/data/images/horse_or_human/train/',
     target_size = (200, 200),                                                                       
     batch_size=3,                                   
-    class_mode='categorical',        
+    class_mode='binary',        
     shuffle=True,  
     seed=42,  
     subset='training'  # set as training data
 )   # Found 822 images belonging to 2 classes.
 
 xy_val = train_datagen.flow_from_directory(      
-    'keras/data/images/horse_or_human/train/',
+    'keras/data/images/horse_or_human/train/',  # same directory as training data
     target_size = (200, 200),                                                                       
     batch_size=3,                                   
-    class_mode='categorical',        
+    class_mode='binary',        
     shuffle=True,   
     seed=42,   
     subset='validation'  # set as validation data
@@ -53,12 +53,16 @@ xy_test = test_datagen.flow_from_directory(
     'keras/data/images/horse_or_human/test/',
     target_size=(200, 200),
     batch_size=3,
-    class_mode='categorical',                            
+    class_mode='binary',                            
 )   # Found 256 images belonging to 2 classes.
 
 print(len(xy_train), len(xy_val), len(xy_test))   # 274, 69, 86
-print(xy_train.image_shape, xy_val.image_shape, xy_test.image_shape)  # (200, 200, 3) (200, 200, 3) (200, 200, 3)
-                                                  
+print(xy_train[0][0].shape, xy_train[0][1].shape)  # x_data=(3, 200, 200, 3) y_data=(3,)  
+
+np.save('keras/save/npy/keras48_2_train_x.npy', arr = xy_train[0][0])
+np.save('keras/save/npy/keras48_2_train_y.npy', arr = xy_train[0][1])
+np.save('keras/save/npy/keras48_2_test_x.npy', arr = xy_val[0][0])
+np.save('keras/save/npy/keras48_2_test_y.npy', arr = xy_val[0][1])
 
 #2. 모델링
 model = Sequential()
@@ -69,17 +73,18 @@ model.add(Flatten())
 model.add(Dense(36, activation='relu'))
 model.add(Dense(18, activation='relu'))
 model.add(Dense(9, activation='relu'))
-model.add(Dense(1, activation='softmax'))
+model.add(Dense(1, activation='sigmoid'))
 
 #3. 컴파일, 훈련
-model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc'])
 es = EarlyStopping(monitor='acc', patience=50, mode='max', verbose=1, restore_best_weights=True)
 model.fit(xy_train, epochs=1, steps_per_epoch=len(xy_train), validation_data=xy_val, validation_steps=len(xy_val), callbacks=[es])            
-                     
+model.save('./_save/keras48_2_save.h5')
+                    
 #4. 평가, 예측
 loss = model.evaluate(xy_test, batch_size=1)  
-print(' [loss]: ', loss[0], '\n','[acc]: ', loss[1])     
-
+print(' [loss]: ', loss[0], '\n','[acc]: ', loss[1])    
+ 
 '''
  [loss]:  0.0 
  [acc]:  0.5
@@ -101,16 +106,13 @@ def load_my_image(img_path):
     img_tensor /=255.
     return img_tensor
  
-img = load_my_image(img_path)
-img_pred = model.predict(img)
+img_pred = model.predict(load_my_image(img_path))
 print(img_pred)
 
 # {'hores': 0, 'human': 1}
 if(img_pred[0][0]<=0.5):
-    hores = 100 - img_pred[0][0]*100
-    print(f"당신은 {round(hores,2)} % 확률로 horse 입니다")
+    print(f"당신은 {round(img_pred[0][0]*100, 2)} % 확률로 horse 입니다")
 elif(img_pred[0][0]>0.5):
-    human = img_pred[0][0]*100
-    print(f"당신은 {round(human,2)} % 확률로 human 입니다")
+    print(f"당신은 {round(img_pred[0][0]*100, 2)} % 확률로 human 입니다")
 else:
     print("ERROR")
