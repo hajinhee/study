@@ -1,68 +1,72 @@
-# https://www.kaggle.com/c/dogs-vs-cats/data
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Conv2D, Flatten, MaxPool2D
 from tensorflow.keras.callbacks import EarlyStopping
 import numpy as np
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 
 #1.데이터 로드 및 전처리
-
 train_datagen = ImageDataGenerator(    
-    rescale=1./255,                    
-    horizontal_flip=True,               
-    vertical_flip=True,                                      
-    width_shift_range=0.1,            
-    height_shift_range=0.1,   
-    rotation_range=5,               
-    zoom_range=1.2,                 
-    shear_range=0.7,                    
+    rescale=1./255,  # 스케일링
+    horizontal_flip=True,  # 상하반전
+    vertical_flip=True,  # 좌우반전
+    width_shift_range=0.1,  # 좌우이동
+    height_shift_range=0.1,  # 상하이동
+    rotation_range=5,  # 회전
+    zoom_range=1.2,  # 확대
+    shear_range=0.7,  # 기울기
     fill_mode='nearest'          
 )
 
 test_datagen = ImageDataGenerator(
-    rescale=1./255                      
+    rescale=1./255  # 테스트 이미지는 이미지증폭을 하지 않는다. --> 원본 그대로 사용
 )
 
 xy_train = train_datagen.flow_from_directory(      
-    '../_data/image/cat_dog/training_set/',
-    target_size = (200, 200),                                                                       
-    batch_size=10,                                   
-    class_mode='binary',        # 여기서 이제 이진분류면 binary 다중분류면 categorical해주는듯.
+    'keras/data/images/cat_or_dog/train/',
+    target_size = (200, 200),  # 이미지 사이즈 
+    batch_size=10,  # 배치사이즈
+    class_mode='binary',  # 이진분류는 'binary' 다중분류는 'categorical' --> 이 때 클래스 개수만큼 폴더로 분리되어 있어야 한다. 
     shuffle=True,    
-)   
+)   # Found 402 images belonging to 2 classes.
 
 xy_test = test_datagen.flow_from_directory(         
-    '../_data/image/cat_dog/test_set/',
-    target_size=(200,200),
-    batch_size=10,
-    class_mode='binary',                            
-)  
+    'keras/data/images/cat_or_dog/test/',
+    target_size=(200, 200),  # 이미지 사이즈
+    batch_size=10,  # 배치 사이즈
+    class_mode='binary',  # 이진분류면 'binary' 다중분류면 'categorical' --> 이 때 클래스 개수만큼 폴더로 분리되어 있어야 한다.
+)   # 테스트 데이터에서는 셔플X
+    # Found 202 images belonging to 2 classes.
 
-#print(len(xy_train))   5개씩 묶었늗네 1601이 나왔다 나머지 연산 포함해서 대략 8000~8005장 사이인 걸 알 수있다. batch_size를 높이자.
-#print(len(xy_test))    2025장 정도.
-#print(len(xy_train),len(xy_test))   #batch 20에 401 102    10에  801 203
-#print(xy_train[0][0].shape)     #(20, 200, 200, 3)  채널 3 확인.
-#print(xy_train[0][1].shape)      #(20,)
-
+print(len(xy_train))  # 41 --> 총 데이터 수/배치사이즈 
+print(len(xy_test))  # 21 --> 총 데이터 수/배치사이즈 
+print(xy_train[0][0].shape)  # (10, 200, 200, 3) --> (배치사이즈, 이미지가로, 이미지세로, 채널)
+print(xy_train[0][1].shape)  # (10,) --> (배치사이즈)
+print(xy_train[0][1])  # [0. 1. 1. 1. 0. 1. 1. 0. 0. 1.]
 
 #2. 모델링
 model = Sequential()
-model.add(Conv2D(32, (2,2), padding='same',input_shape=(200,200,3), activation='relu'))
-model.add(MaxPool2D(2))                                                     # 50,50,32
-model.add(Conv2D(16, (4,4), activation='relu'))                            # 72,72,16
+model.add(Conv2D(32, (2, 2), padding='same', input_shape=(200, 200, 3), activation='relu'))
+model.add(MaxPool2D(2))                                   
+model.add(Conv2D(16, (4, 4), activation='relu'))                   
 model.add(Flatten())
 model.add(Dense(36, activation='relu'))
 model.add(Dense(18, activation='relu'))
 model.add(Dense(9, activation='relu'))
-model.add(Dense(1,activation='sigmoid'))
+model.add(Dense(1, activation='sigmoid'))  # 'sigmoid' 이진분류
 
-#3. 컴파일,훈련
-model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc'])
-es = EarlyStopping(monitor = "acc", patience=50, mode='max',verbose=1,restore_best_weights=True)
-model.fit_generator(xy_train,epochs=10000,steps_per_epoch=400,callbacks=[es])            
+#3. 컴파일, 훈련
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+es = EarlyStopping(monitor='accuracy', patience=50, mode='max', verbose=1, restore_best_weights=True)
+model.fit_generator(xy_train, epochs=100, steps_per_epoch=41, callbacks=[es])            
                      
-#4. 평가,예측.
-
+#4. 평가, 예측.
 loss = model.evaluate_generator(xy_test)
-print(loss)     # [0.6193896532058716, 0.6450815796852112]     loss와 acc
+print(' [loss]: ', loss[0], '\n', '[accuracy]: ', loss[1])    
 
+'''
+[loss]:  0.6956690549850464 
+[accuracy]:  0.46039605140686035
+'''

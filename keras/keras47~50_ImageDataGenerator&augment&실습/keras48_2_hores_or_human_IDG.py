@@ -7,149 +7,110 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import shutil
 
-#1.데이터 로드 및 전처리
-
-# 데이터를 train test없이 그냥 말과 사람 뭉탱이로 제공해주었다.
-# -> 말과 뭉탱이를 각각 말 train test 사람 train test로 일정 비율로 나누고 싶다.
-# -> 왜 why train_set은 이미지제네레이터에서 변환후 불러오고 test_set은 그냥 불러와서 fit과 evaulate 하고싶기때문이다.
-
-
-'''
-path = "../_data/image/horse-or-human"      
-
-hores = os.listdir(path+'/horses')          # 500장
-humans = os.listdir(path+'/humans')        # 527장
-
-hores_train, hores_test = train_test_split(hores, train_size=0.8, shuffle=True, random_state=49)
-humans_train, humans_test = train_test_split(humans, train_size=0.8, shuffle=True, random_state=49)
-
-os.makedirs(f'{path}/training_set/horses', exist_ok=True)
-os.makedirs(f'{path}/training_set/humans', exist_ok=True)
-os.makedirs(f'{path}/test_set/horses', exist_ok=True)
-os.makedirs(f'{path}/test_set/humans', exist_ok=True)
-
-for i in hores_train:
-    shutil.copy2(f'{path}/horses/'+i,f'{path}/training_set/horses/'+i)
-for i in humans_train:
-    shutil.copy2(f'{path}/humans/'+i,f'{path}/training_set/humans/'+i)
-for i in hores_test:
-    shutil.copy2(f'{path}/horses/'+i,f'{path}/test_set/horses/'+i)
-for i in humans_test:
-    shutil.copy2(f'{path}/humans/'+i,f'{path}/test_set/humans/'+i)    
-'''
-
+#1. 데이터 로드 및 전처리
 train_datagen = ImageDataGenerator(    
-    rescale=1./255,                    
-    horizontal_flip=True,               
-    vertical_flip=True,                                      
-    width_shift_range=0.1,            
-    height_shift_range=0.1,   
-    rotation_range=5,               
-    zoom_range=1.2,                 
-    shear_range=0.7,                    
+    rescale=1./255,  # 스케일링                   
+    horizontal_flip=True,  # 상하반전
+    vertical_flip=True,  # 좌우반전
+    width_shift_range=0.1,  # 좌우이동
+    height_shift_range=0.1,  # 상하이동
+    rotation_range=5,  # 회전
+    zoom_range=1.2,  # 확대
+    shear_range=0.7,  # 기울기
     fill_mode='nearest',
-    validation_split=0.2          
+    validation_split=0.2  # 검증데이터 분할
 )
 
 test_datagen = ImageDataGenerator(
     rescale=1./255                      
 )
 
-b = 3
-
-xy_train_train = train_datagen.flow_from_directory(      
-    '../_data/image/horse-or-human/training_set/',
+xy_train = train_datagen.flow_from_directory(      
+    'keras/data/images/horse_or_human/train/',
     target_size = (200, 200),                                                                       
-    batch_size=b,                                   
+    batch_size=3,                                   
     class_mode='categorical',        
-    shuffle=True,  seed=66,  
-    subset='training'
-)   
+    shuffle=True,  
+    seed=42,  
+    subset='training'  # set as training data
+)   # Found 822 images belonging to 2 classes.
 
-xy_train_val = train_datagen.flow_from_directory(      
-    '../_data/image/horse-or-human/training_set/',
+xy_val = train_datagen.flow_from_directory(      
+    'keras/data/images/horse_or_human/train/',
     target_size = (200, 200),                                                                       
-    batch_size=b,                                   
+    batch_size=3,                                   
     class_mode='categorical',        
-    shuffle=True,   seed=66,   
-    subset='validation'
-) 
+    shuffle=True,   
+    seed=42,   
+    subset='validation'  # set as validation data
+)   # Found 205 images belonging to 2 classes.
 
 xy_test = test_datagen.flow_from_directory(         
-    '../_data/image/horse-or-human/test_set/',
-    target_size=(200,200),
-    batch_size=b,
+    'keras/data/images/horse_or_human/test/',
+    target_size=(200, 200),
+    batch_size=3,
     class_mode='categorical',                            
-)  
+)   # Found 256 images belonging to 2 classes.
 
-# if len(xy_train_train)%b == 0:                  # <--- 왜 spe를 len값에다 다시 batch나눠서 batch의 batch값으로 하는지 질문
-#     spe = len(xy_train_train)//b                # 왜 len값 그대로 안 넣는지.
-# else:
-#     spe = len(xy_train_train)//b + 1
-
-# if len(xy_train_val)%b == 0:
-#     vs = len(xy_train_val)//b
-# else:
-#     vs = len(xy_train_val)//b + 1
-
-spe = len(xy_train_train)
-vs = len(xy_train_val)
-
-
-# xy_train_train,xy_train_val,xy_test    3개의 파일이 생긴다
-
-#print(len(xy_train_train),len(xy_train_val),len(xy_test))   # batch  5에 각각 132 33 42  207 x  5 = 1035    나머지연산 감안하며 딱 맞다.
-                                                            # batch 10에 각각  66 17 21  104 x 10 = 1040    드디어 비로소 제대로 된 모델링 시작가능.
-
+print(len(xy_train), len(xy_val), len(xy_test))   # 274, 69, 86
+print(xy_train.image_shape, xy_val.image_shape, xy_test.image_shape)  # (200, 200, 3) (200, 200, 3) (200, 200, 3)
+                                                  
 
 #2. 모델링
 model = Sequential()
-model.add(Conv2D(32, (2,2), padding='same',input_shape=(200,200,3), activation='relu'))
-model.add(MaxPool2D(2))                                                     # 50,50,32
-model.add(Conv2D(16, (4,4), activation='relu'))                            # 72,72,16
+model.add(Conv2D(32, (2, 2), padding='same', input_shape=(200, 200, 3), activation='relu'))
+model.add(MaxPool2D(2))                                                    
+model.add(Conv2D(16, (4, 4), activation='relu'))                
 model.add(Flatten())
 model.add(Dense(36, activation='relu'))
 model.add(Dense(18, activation='relu'))
 model.add(Dense(9, activation='relu'))
-model.add(Dense(2,activation='softmax'))
+model.add(Dense(1, activation='softmax'))
 
-#3. 컴파일,훈련
+#3. 컴파일, 훈련
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
-es = EarlyStopping(monitor = "acc", patience=50, mode='max',verbose=1,restore_best_weights=True)
-model.fit(xy_train_train,epochs=1,steps_per_epoch=spe,validation_data=xy_train_val,validation_steps=vs,callbacks=[es])            
+es = EarlyStopping(monitor='acc', patience=50, mode='max', verbose=1, restore_best_weights=True)
+model.fit(xy_train, epochs=1, steps_per_epoch=len(xy_train), validation_data=xy_val, validation_steps=len(xy_val), callbacks=[es])            
                      
-#4. 평가,예측.
+#4. 평가, 예측
+loss = model.evaluate(xy_test, batch_size=1)  
+print(' [loss]: ', loss[0], '\n','[acc]: ', loss[1])     
 
-loss = model.evaluate(xy_test,batch_size=1)  
-print(loss)                     # [0.1567889153957367, 0.946601927280426]
+'''
+ [loss]:  0.0 
+ [acc]:  0.5
+'''
 
-pic_path = '../_data/image/증사.jpg'
+img_path = 'keras/data/images/sample.jpg'
 
-def load_my_image(img_path,show=False):
-    img = image.load_img(img_path, target_size=(200,200))
+# 이미지 확인
+# image_ = plt.imread(str(img_path))
+# plt.title("Test Case")
+# plt.imshow(image_)
+# plt.axis('Off')
+# plt.show()
+
+def load_my_image(img_path):
+    img = image.load_img(str(img_path), target_size=(200, 200))
     img_tensor = image.img_to_array(img)
-    img_tensor = np.expand_dims(img_tensor, axis = 0)
+    img_tensor = np.expand_dims(img_tensor, axis=0)
     img_tensor /=255.
-
-    if show:
-            plt.imshow(img_tensor[0])    
-            plt.show()
-    
     return img_tensor
+ 
+img = load_my_image(img_path)
+img_pred = model.predict(img)
+print(img_pred)
 
-img = load_my_image(pic_path)
-
-pred = model.predict(img)
-
-horseper = round(pred[0][0]*100,1)
-humanper = round(pred[0][1]*100,1)
-    
-
-if pred[0][0] > pred[0][1]:
-    print(f'당신은 {horseper}% 의 확률로 말입니다')
-else : 
-    print(f'당신은 {humanper}% 의 확률로 사람입니다')
-    
-#당신은 67.4% 의 확률로 사람입니다
+# {'hores': 0, 'human': 1}
+if(img_pred[0][0]<=0.5):
+    hores = 100 - img_pred[0][0]*100
+    print(f"당신은 {round(hores,2)} % 확률로 horse 입니다")
+elif(img_pred[0][0]>0.5):
+    human = img_pred[0][0]*100
+    print(f"당신은 {round(human,2)} % 확률로 human 입니다")
+else:
+    print("ERROR")

@@ -5,76 +5,79 @@ from tensorflow.keras.callbacks import EarlyStopping
 import numpy as np
 from sklearn.metrics import accuracy_score
 
-#1.데이터 로드 및 전처리
+#1. 데이터 로드 및 전처리
 
-# train_datagen = ImageDataGenerator(    
-#     rescale=1./255,                    
-#     horizontal_flip=True,               
-#     vertical_flip=True,                                      
-#     width_shift_range=0.1,            
-#     height_shift_range=0.1,   
-#     rotation_range=5,               
-#     zoom_range=1.2,                 
-#     shear_range=0.7,                    
-#     fill_mode='nearest'          
-# )
+train_datagen = ImageDataGenerator(    
+    rescale=1./255,                     
+    horizontal_flip=True,             
+    vertical_flip=True,
+    width_shift_range=0.1,
+    height_shift_range=0.1,
+    rotation_range=5,
+    zoom_range=1.2,
+    shear_range=0.7,
+    fill_mode='nearest', 
+    validation_split=0.2        
+)
 
-# test_datagen = ImageDataGenerator(
-#     rescale=1./255                      
-# )
+test_datagen = ImageDataGenerator(
+    rescale=1./255                      
+)
 
-# xy_train = train_datagen.flow_from_directory(      
-#     '../_data/image/cat_dog/training_set/',
-#     target_size = (200, 200),                                                                       
-#     batch_size=100000,                                   
-#     class_mode='binary',        
-#     shuffle=True,    
-# )   
+xy_train = train_datagen.flow_from_directory(      
+    'keras/data/images/cat_or_dog/train/',
+    target_size = (200, 200),                                                                       
+    batch_size=20,                                   
+    class_mode='binary',        
+    shuffle=True  
+)   # Found 402 images belonging to 2 classes.
 
-# xy_test = test_datagen.flow_from_directory(         
-#     '../_data/image/cat_dog/test_set/',
-#     target_size=(200,200),
-#     batch_size=1000000,
-#     class_mode='binary',                            
-# )  
+xy_test = test_datagen.flow_from_directory(         
+    'keras/data/images/cat_or_dog/test/',
+    target_size=(200, 200),
+    batch_size=20,
+    class_mode='binary',                            
+)   # Found 202 images belonging to 2 classes.
 
-#print(len(xy_train))   #5개씩 묶었늗네 1601이 나왔다 나머지 연산 포함해서 대략 8000~8005장 사이인 걸 알 수있다. batch_size를 높이자.
-#print(len(xy_test))    #2025장 정도.
-#print(len(xy_train),len(xy_test))   #batch 20에 401 102    10에  801 203
-#print(xy_train[0][0].shape)     #(20, 200, 200, 3)  채널 3 확인.
-#print(xy_train[0][1].shape)      #(20,)
+print(len(xy_train))   # 21
+print(len(xy_test))    # 11
+print(xy_train[0][0].shape)  # (20, 200, 200, 3)
+print(xy_train[0][1].shape)  # (20,)
 
-# np.save('./_save_npy/keras48_1_train_x.npy', arr=xy_train[0][0])    
-# np.save('./_save_npy/keras48_1_train_y.npy', arr=xy_train[0][1])    
-# np.save('./_save_npy/keras48_1_test_x.npy', arr=xy_test[0][0])      
-# np.save('./_save_npy/keras48_1_test_y.npy', arr=xy_test[0][1]) 
+# np.save('keras/save/npy/keras48_1_train_x.npy', arr=xy_train[0][0])  # x_traom  
+# np.save('keras/save/npy/keras48_1_train_y.npy', arr=xy_train[0][1])  # y_train
+# np.save('keras/save/npy/keras48_1_test_x.npy', arr=xy_test[0][0])  # x_test
+# np.save('keras/save/npy/keras48_1_test_y.npy', arr=xy_test[0][1])  # y_test
 
-x_train = np.load('../_data/_save_npy/keras48_1_train_x.npy')      #(160, 150, 150, 3)
-y_train = np.load('../_data/_save_npy/keras48_1_train_y.npy')      #(160,)
-x_test = np.load('../_data/_save_npy/keras48_1_test_x.npy')        #(120, 150, 150, 3)
-y_test = np.load('../_data/_save_npy/keras48_1_test_y.npy')
+x_train = np.load('keras/save/npy/keras48_1_train_x.npy')  # (20, 200, 200, 3)    
+y_train = np.load('keras/save/npy/keras48_1_train_y.npy')  # (20,) 
+x_test = np.load('keras/save/npy/keras48_1_test_x.npy')  # (20, 200, 200, 3)    
+y_test = np.load('keras/save/npy/keras48_1_test_y.npy')  # (20,) 
 
-#print(x_train.shape,y_train.shape,x_test.shape,y_test.shape)    # (8005, 200, 200, 3) (8005,) (2023, 200, 200, 3) (2023,)
-
+# print(x_train.shape, y_train.shape, x_test.shape, y_test.shape)  
 
 #2. 모델링
 model = Sequential()
-model.add(Conv2D(32, (2,2), padding='same',input_shape=(200,200,3), activation='relu'))
-model.add(MaxPool2D(2))                                                     # 50,50,32
-model.add(Conv2D(16, (4,4), activation='relu'))                            # 72,72,16
+model.add(Conv2D(32, (2, 2), padding='same', input_shape=(200, 200, 3), activation='relu'))
+model.add(MaxPool2D(2))                                                    
+model.add(Conv2D(16, (4, 4), activation='relu'))                      
 model.add(Flatten())
 model.add(Dense(36, activation='relu'))
 model.add(Dense(18, activation='relu'))
 model.add(Dense(9, activation='relu'))
-model.add(Dense(1,activation='sigmoid'))
+model.add(Dense(1, activation='sigmoid'))
 
-#3. 컴파일,훈련
+#3. 컴파일, 훈련
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc'])
-es = EarlyStopping(monitor = "val_acc", patience=50, mode='max',verbose=1,restore_best_weights=True)
-model.fit(x_train,y_train,epochs=1000,batch_size=100,validation_split=0.2,callbacks=[es])    
+es = EarlyStopping(monitor='val_acc', patience=50, mode='max', verbose=1,  restore_best_weights=True)
+model.fit(x_train, y_train, epochs=100, batch_size=100, validation_split=0.2, callbacks=[es])    
 
-#4. 평가,예측
+#4. 평가, 예측
+loss = model.evaluate(x_test, y_test, batch_size=10)
+print('[loss] : ', loss[0])        
+print('[acc] : ', loss[1])         
 
-loss = model.evaluate(x_test,y_test, batch_size=10)
-print(' loss : ', loss[0])          #    loss :  0.6956891417503357
-print(' acc : ', loss[1])           #    acc :  0.534849226474762
+'''
+[loss] :  1.0926132202148438
+[acc] :  0.5
+'''

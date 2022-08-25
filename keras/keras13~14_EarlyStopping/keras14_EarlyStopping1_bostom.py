@@ -27,7 +27,7 @@ model.add(Dense(1))
 #3. 컴파일, 훈련
 model.compile(loss='mse', optimizer='adam') 
 
-es = EarlyStopping(monitor="val_loss", patience=10, mode='min', verbose=1, baseline=None, restore_best_weights=True)
+es = EarlyStopping(monitor='val_loss', patience=10, mode='min', verbose=1, baseline=None, restore_best_weights=True)
 # monitor: 어떤 값을 기준으로 하여 훈련 종료를 결정한 것인가
 # patience: 기쥰이 되는 값이 연속으로 몇 번 이상 향상되지 않을 때 종료할 것인가
 '''
