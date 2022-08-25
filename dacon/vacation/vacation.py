@@ -15,6 +15,8 @@ import seaborn as sns
 from sklearn.model_selection import KFold
 from sklearn.model_selection import cross_val_score
 from tensorflow.keras.utils import to_categorical 
+from sklearn.model_selection import GridSearchCV
+
 
 # 데이터 준비
 train = pd.read_csv('dacon/vacation/data/train.csv')
@@ -69,16 +71,15 @@ for these in [train, test]:
     these['Designation'] = these['Designation'].map({'AVP': 0, 'VP': 1, 'Manager': 2, 'Senior Manager':3, 'Executive': 4})
 
 # 결측치 처리
-ls = ['TypeofContact', 'DurationOfPitch', 'Age', 'PreferredPropertyStar']
+ls = ['DurationOfPitch', 'TypeofContact']
 for these in [train, test]:
     for col in ls:
-        these[col].fillna(0, inplace=True)
+        these[col].fillna(0, inplace=True) 
 
-# ic(train.corrwith(train['MonthlyIncome']))
-
-# for these in [train, test]:
-        # these['PreferredPropertyStar'].fillna(these.groupby('NumberOfTrips')['PreferredPropertyStar'].transform('mean'), inplace=True)
-        # these['Age'].fillna(these['Age'].min(), inplace=True)
+for these in [train, test]:
+        these['PreferredPropertyStar'].fillna(these.groupby('NumberOfTrips')['PreferredPropertyStar'].transform('mean'), inplace=True)
+        these['Age'].fillna(these['Age'].min(), inplace=True)
+        # these['TypeofContact'].fillna(these.groupby('NumberOfFollowups')['TypeofContact'].transform('mean'), inplace=True)
 
 # 스케일링
 # scaler = MinMaxScaler()
@@ -89,26 +90,37 @@ train[['Age', 'DurationOfPitch']] = scaler.fit_transform(train[['Age', 'Duration
 test[['Age', 'DurationOfPitch']] = scaler.transform(test[['Age', 'DurationOfPitch']])
 
 # train을 x, y로 나누고 불필요한 컬럼 제거
-train.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar',  'MonthlyIncome', 'NumberOfTrips', 'NumberOfFollowups'], axis=1, inplace=True)
-test.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar',  'MonthlyIncome', 'NumberOfTrips', 'NumberOfFollowups'], axis=1, inplace=True)
+train.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'MonthlyIncome', 'NumberOfTrips', 'NumberOfFollowups'], axis=1, inplace=True)
+test.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'MonthlyIncome', 'NumberOfTrips', 'NumberOfFollowups'], axis=1, inplace=True)
 x = train.drop(columns=['ProdTaken'], axis=1)
 y = train[['ProdTaken']]
+ic(y)
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.95, shuffle=True, random_state=66)  
+k_fold = KFold(n_splits=10, shuffle=True, random_state=66)
 
-model = RandomForestClassifier(n_estimators=200, 
-                                n_jobs=-1)
-# model.fit(x, y.values.ravel())
-model.fit(x_train, y_train.values.ravel())
+rf = RandomForestClassifier(n_jobs=-1)
+params = {
+    'n_estimators' : (100, 150, 200, 250, 300, 400, 450, 500)
+}
 
-ic('Train Accuracy : {:.2f}'.format(model.score(x_train, y_train)))
-ic('Test Accuracy : {:.2f}'.format(model.score(x_test, y_test)))
+grid_cv = GridSearchCV(rf,
+                       param_grid=params,
+                       cv = k_fold,
+                       n_jobs=-1)
+grid_cv.fit(x, y.values.ravel())
+ic(grid_cv.best_estimator_)
 
-y_pred = model.predict(x_test)
-ic('score:', accuracy_score(y_pred, y_test)) 
+model = grid_cv.best_estimator_
+model.fit(x, y.values.ravel())
+# model.fit(x_train, y_train.values.ravel())
 
-y_pred = model.predict(test)
-ic(np.unique(y_pred, return_counts=True))
+# ic('Train Accuracy : {:.2f}'.format(model.score(x_train, y_train)))
+# ic('Test Accuracy : {:.2f}'.format(model.score(x_test, y_test)))
+# y_pred = model.predict(x_test)
+# ic('score:', accuracy_score(y_pred, y_test)) 
+
+score = cross_val_score(model, x, y.values.ravel(), cv=k_fold, n_jobs=-1, scoring='accuracy')
+ic('k_fold_score:', np.mean(score)) 
 
 # KFold 교차검증
 # k_fold = KFold(n_splits=10, shuffle=True, random_state=0)
@@ -117,6 +129,8 @@ ic(np.unique(y_pred, return_counts=True))
 
 # 데이터 submit
 y_summit = model.predict(test)
+ic(np.unique(y, return_counts=True))
+ic(np.unique(y_summit, return_counts=True))
 sample_submission['ProdTaken'] = y_summit
-sample_submission.to_csv('dacon/vacation/save/sample_submission.csv', index=False)
+sample_submission.to_csv('dacon/vacation/save/sample_submission11.csv', index=False)
 
