@@ -1,160 +1,108 @@
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Conv2D, Flatten, MaxPool2D
-from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow.keras.preprocessing import image
-from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
 import numpy as np
-import os
-import shutil
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.python.keras.backend import binary_crossentropy
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Conv2D, Flatten, Dropout
+import pandas as pd
+from tensorflow.keras.models import Model, load_model
+from tensorflow.keras.preprocessing import image
+import matplotlib.pyplot as plt
+from tensorflow.keras.preprocessing import image as keras_image
+from icecream import ic
 
-#1.데이터 로드 및 전처리
+#1. 데이터
+train_datagen = ImageDataGenerator(
+    rescale = 1./255,              
+    horizontal_flip = True,        
+    vertical_flip= True,           
+    width_shift_range = 0.1,       
+    height_shift_range= 0.1,       
+    rotation_range= 5,
+    zoom_range = 1.2,              
+    shear_range=0.7,
+    fill_mode = 'nearest',
+    validation_split=0.3          
+    )                   # set validation split
 
-# 데이터를 train test없이 그냥 말과 사람 뭉탱이로 제공해주었다.
-# -> 말과 뭉탱이를 각각 말 train test 사람 train test로 일정 비율로 나누고 싶다.
-# -> 왜 why train_set은 이미지제네레이터에서 변환후 불러오고 test_set은 그냥 불러와서 fit과 evaulate 하고싶기때문이다.
+batch = 5
+train_generator = train_datagen.flow_from_directory(
+    'keras/data/images/rps/',
+    target_size=(100, 100),
+    batch_size=batch,
+    class_mode='categorical',
+    shuffle=True,
+    subset='training')  # set as training split
 
-path = "../_data/image/rps"      
+validation_generator = train_datagen.flow_from_directory(
+    'keras/data/images/rps/',
+    target_size=(100, 100),
+    batch_size=batch,
+    class_mode='categorical',
+    subset='validation')  # set as validation split
 
-rock = os.listdir(path+'/1_rock')             
-paper = os.listdir(path+'./2_paper')          
-scissors = os.listdir(path+'./3_scissors')    
-#print(len(rock),len(paper),len(scissors))  # 각각 840장!
+print(train_generator[0][0].shape)  # x_data (5, 100, 100, 3)
+print(train_generator[0][1].shape)  # y_data (5, 3)
+print(validation_generator[0][0].shape)  # x_test (5, 100, 100, 3)
+print(validation_generator[0][1].shape)  # y_test (5, 3)
 
-rock_train, rock_test = train_test_split(rock, train_size=0.8, shuffle=True, random_state=49)
-paper_train, paper_test = train_test_split(paper, train_size=0.8, shuffle=True, random_state=49)
-scissors_train, scissors_test = train_test_split(scissors, train_size=0.8, shuffle=True, random_state=49)
-#print(len(rock_train),len(rock_test)) 672 168 개 확인.
-
-os.makedirs(f'{path}/training_set/1_rock', exist_ok=True)
-os.makedirs(f'{path}/training_set/2_paper', exist_ok=True)
-os.makedirs(f'{path}/training_set/3_scissors', exist_ok=True)
-os.makedirs(f'{path}/test_set/1_rock', exist_ok=True)
-os.makedirs(f'{path}/test_set/2_paper', exist_ok=True)
-os.makedirs(f'{path}/test_set/3_scissors', exist_ok=True)
-
-for i in rock_train:
-    shutil.copy2(f'{path}/1_rock/'+i,f'{path}/training_set/1_rock/'+i)
-for i in paper_train:
-    shutil.copy2(f'{path}/2_paper/'+i,f'{path}/training_set/2_paper/'+i)
-for i in scissors_train:
-    shutil.copy2(f'{path}/3_scissors/'+i,f'{path}/training_set/3_scissors/'+i)
-for i in rock_test:
-    shutil.copy2(f'{path}/1_rock/'+i,f'{path}/test_set/1_rock/'+i)
-for i in paper_test:
-    shutil.copy2(f'{path}/2_paper/'+i,f'{path}/test_set/2_paper/'+i)
-for i in scissors_test:
-    shutil.copy2(f'{path}/3_scissors/'+i,f'{path}/test_set/3_scissors/'+i)    
-
-
-'''
-train_datagen = ImageDataGenerator(    
-    rescale=1./255,                    
-    horizontal_flip=True,               
-    vertical_flip=True,                                      
-    width_shift_range=0.1,            
-    height_shift_range=0.1,   
-    rotation_range=5,               
-    zoom_range=1.2,                 
-    shear_range=0.7,                    
-    fill_mode='nearest',
-    validation_split=0.2          
-)
-
-test_datagen = ImageDataGenerator(
-    rescale=1./255                      
-)
-
-b = 5
-
-xy_train_train = train_datagen.flow_from_directory(      
-    '../_data/image/horse-or-human/training_set/',
-    target_size = (200, 200),                                                                       
-    batch_size=b,                                   
-    class_mode='categorical',        
-    shuffle=True,  seed=66,  
-    subset='training'
-)   
-
-xy_train_val = train_datagen.flow_from_directory(      
-    '../_data/image/horse-or-human/training_set/',
-    target_size = (200, 200),                                                                       
-    batch_size=b,                                   
-    class_mode='categorical',        
-    shuffle=True,   seed=66,   
-    subset='validation'
-) 
-
-xy_test = test_datagen.flow_from_directory(         
-    '../_data/image/horse-or-human/test_set/',
-    target_size=(200,200),
-    batch_size=b,
-    class_mode='categorical',                            
-)  
-
-if len(xy_train_train)%b == 0:
-    spe = len(xy_train_train)//b
-else:
-    spe = len(xy_train_train)//b + 1
-
-if len(xy_train_val)%b == 0:
-    vs = len(xy_train_val)//b
-else:
-    vs = len(xy_train_val)//b + 1
-
-# xy_train_train,xy_train_val,xy_test    3개의 파일이 생긴다
-
-#print(len(xy_train_train),len(xy_train_val),len(xy_test))   # batch  5에 각각 132 33 42  207 x  5 = 1035    나머지연산 감안하며 딱 맞다.
-                                                            # batch 10에 각각  66 17 21  104 x 10 = 1040    드디어 비로소 제대로 된 모델링 시작가능.
-
+# np.save('keras/save/npy/keras48_3_train_x.npy', arr = train_generator[0][0]) 
+# np.save('keras/save/npy/keras48_3_train_y.npy', arr = train_generator[0][1])
+# np.save('keras/save/npy/keras48_3_test_x.npy', arr = validation_generator[0][0])
+# np.save('keras/save/npy/keras48_3_test_y.npy', arr = validation_generator[0][1])
 
 #2. 모델링
 model = Sequential()
-model.add(Conv2D(32, (2,2), padding='same',input_shape=(200,200,3), activation='relu'))
-model.add(MaxPool2D(2))                                                     # 50,50,32
-model.add(Conv2D(16, (4,4), activation='relu'))                            # 72,72,16
+model.add(Conv2D(32, (2, 2), input_shape=(100, 100, 3)))
 model.add(Flatten())
-model.add(Dense(36, activation='relu'))
-model.add(Dense(18, activation='relu'))
-model.add(Dense(9, activation='relu'))
-model.add(Dense(2,activation='softmax'))
+model.add(Dense(64, activation='relu'))
+model.add(Dense(40, activation='relu')) 
+model.add(Dense(30, activation='relu'))
+model.add(Dense(16, activation='relu'))
+model.add(Dense(3, activation='softmax'))
 
-#3. 컴파일,훈련
-model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
-es = EarlyStopping(monitor = "acc", patience=50, mode='max',verbose=1,restore_best_weights=True)
-model.fit(xy_train_train,epochs=10000,steps_per_epoch=spe,validation_data=xy_train_val,validation_steps=vs,callbacks=[es])            
-                     
-#4. 평가,예측.
+#3. 모델 컴파일, 훈련, 저장
+model.compile(loss='categorical_crossentropy', optimizer= 'adam', metrics=['acc'])
+hist = model.fit_generator(train_generator, epochs=30, steps_per_epoch=len(train_generator), 
+                    validation_data=validation_generator,
+                    validation_steps=len(validation_generator))
+# model.save('./_save/keras48_3_save.h5')
 
-loss = model.evaluate(xy_test)  
-print(loss)                     # [0.1567889153957367, 0.946601927280426]
+#4. 평가, 확인
+loss, acc = model.evaluate(validation_generator)   
+ic(loss, acc)
 
-pic_path = '../_data/image/증사.jpg'
+'''
+[loss]:  0.7148408889770508 [acc]:  0.7297710180282593
+'''
 
-def load_my_image(img_path,show=False):
-    img = image.load_img(img_path, target_size=(200,200))
-    img_tensor = image.img_to_array(img)
-    img_tensor = np.expand_dims(img_tensor, axis = 0)
-    img_tensor /=255.
+# 샘플 케이스 경로지정
+sample_image = 'keras/data/images/rps_sample.jpg'
 
-    if show:
-            plt.imshow(img_tensor[0])    
-            plt.show()
-    
-    return img_tensor
+# 샘플 케이스 확인
+image_ = plt.imread(str(sample_image))
+plt.title("Test Case")
+plt.imshow(image_)
+plt.axis('Off')
+# plt.show()
 
-img = load_my_image(pic_path)
+# 샘플 이미지 예측
+image_ = keras_image.load_img(str(sample_image), target_size=(100, 100))  # 이미지 로드 <class 'PIL.Image.Image'>
+x = keras_image.img_to_array(image_)  # Image를 numpy.array로 변환 --> (100, 100, 3) 3차원
+x = np.expand_dims(x, axis=0) # 차원 추가 --> (1, 100, 100, 3) 4차원
+x /= 255.  # 픽셀값을 0~1 사이로 정규화
+x = np.vstack([x])  # vstack: 배열을 수직(행방향)으로 쌓는다. hstack: 배열을 수평(열방향)으로 쌓는다.
+classes = model.predict(x, batch_size=1)  #  classes: [[0.21934389, 0.37464112, 0.40601498]]
+ic(classes)
+y_predict = np.argmax(classes)  # 가장 큰 원소의 인덱스 반환 --> y_predict:  0
 
-pred = model.predict(img)
+ic(validation_generator.class_indices)  # 클래스 이름과 클래스 색인 간 매핑을 담은 딕셔너리
+                                        # class_indices: {'paper': 0, 'rock': 1, 'scissors': 2}
 
-horseper = round(pred[0][0]*100,1)
-humanper = round(pred[0][1]*100,1)
-    
+print(f'{classes[0][0]*100} 의 확률로 [보]입니다.' if y_predict==0 
+        else f'{classes[0][1]*100} 의 확률로 [바위]입니다.' if y_predict==1 
+        else f'{classes[0][2]*100} 의 확률로 [가위]입니다.')
 
-if pred[0][0] > pred[0][1]:
-    print(f'당신은 {horseper}% 의 확률로 말입니다')
-else : 
-    print(f'당신은 {humanper}% 의 확률로 사람입니다')
-    
+'''
+39.96744155883789 의 확률로
+ → '보'입니다.
 '''

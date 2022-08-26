@@ -7,16 +7,15 @@ import numpy as np
 
 train_datagen = ImageDataGenerator(    
     rescale=1./255,                    
-    horizontal_flip=True,               
-    #vertical_flip=True,                                      
-    width_shift_range=0.1,            
-    height_shift_range=0.1,   
-    #rotation_range=5,               
-    zoom_range=0.1,                 
-    #shear_range=0.7,                    
+    horizontal_flip=True, # 상하반전
+    # vertical_flip=True,  # 좌우반전
+    width_shift_range=0.1,  # 좌우이동
+    height_shift_range=0.1,  # 상하이동
+    # rotation_range=5,  # 회전
+    zoom_range=0.1,  # 확대
+    # shear_range=0.7,  # 기울기
     fill_mode='nearest'          
 )
-# 이 옵션들이 되게 중요함. 각 이미지 타입들마다 그 이미지들의 특성이 있기때문에 변환특성을 잘 보고 각 데이터에 맞게 적절한 비율로 커스터마이즈 해줘야함. ****
 
 augment_size = 100
 # print(x_train[0].shape)                                                                 # (28, 28)

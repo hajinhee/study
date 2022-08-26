@@ -45,7 +45,7 @@ heatmap_ax = sns.heatmap(heat_table, annot=True, mask = mask, cmap='coolwarm', v
 heatmap_ax.set_xticklabels(heatmap_ax.get_xticklabels(), fontsize=10, rotation=90)
 heatmap_ax.set_yticklabels(heatmap_ax.get_yticklabels(), fontsize=10)
 plt.title('correlation between features', fontsize=20)
-plt.show()
+# plt.show()
 
 # 고객의 제품 인지 방법 (회사의 홍보 or 스스로 검색) mapping
 for these in [train, test]:
@@ -82,9 +82,9 @@ for these in [train, test]:
         these['Age'].fillna(these.groupby('Designation')['Age'].transform('mean'), inplace=True)
 
 # 이상치 확인
-plt.scatter(train.NumberOfTrips, train.PreferredPropertyStar)
-plt.xlabel('NumberOfTrips')
-plt.ylabel('PreferredPropertyStar')
+# plt.scatter(train.NumberOfTrips, train.PreferredPropertyStar)
+# plt.xlabel('NumberOfTrips')
+# plt.ylabel('PreferredPropertyStar')
 # plt.show()
 
 # 이상치 제거
@@ -94,11 +94,12 @@ train.drop(index=[189, 604, 1338, 987], inplace=True)
 
 # 스케일링
 # scaler = MinMaxScaler()
-scaler = StandardScaler()
+# scaler = StandardScaler()
 # scaler = RobustScaler()
-# scaler = MaxAbsScaler()
+scaler = MaxAbsScaler()
 train[['Age', 'DurationOfPitch']] = scaler.fit_transform(train[['Age', 'DurationOfPitch']])
 test[['Age', 'DurationOfPitch']] = scaler.transform(test[['Age', 'DurationOfPitch']])
+ic(train.describe())  
 
 # train을 x, y로 나누고 불필요한 컬럼 제거
 train.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'NumberOfTrips', 'MonthlyIncome', 'NumberOfFollowups'], axis=1, inplace=True)
@@ -110,7 +111,7 @@ k_fold = KFold(n_splits=10, shuffle=True, random_state=66)
 
 rf = ExtraTreesClassifier(n_jobs=-1)
 params = {
-    'n_estimators' : (100, 150, 200, 250, 300, 400, 450, 500, 550, 600)
+    'n_estimators' : (100, 150, 200, 250, 300, 400, 450, 500, 550, 600, 650, 700)
 }
 
 grid_cv = GridSearchCV(rf,
@@ -122,6 +123,7 @@ ic(grid_cv.best_estimator_)
 
 model = grid_cv.best_estimator_
 model.fit(x, y.values.ravel())
+
 # model.fit(x_train, y_train.values.ravel())
 # ic('Train Accuracy : {:.2f}'.format(model.score(x_train, y_train)))
 # ic('Test Accuracy : {:.2f}'.format(model.score(x_test, y_test)))
@@ -129,7 +131,7 @@ model.fit(x, y.values.ravel())
 # ic('score:', accuracy_score(y_pred, y_test)) 
 
 score = cross_val_score(model, x, y.values.ravel(), cv=k_fold, n_jobs=-1, scoring='accuracy')
-ic('k_fold_score:', np.mean(score)) 
+ic(score, np.mean(score)) 
 
 # KFold 교차검증
 # k_fold = KFold(n_splits=10, shuffle=True, random_state=0)
