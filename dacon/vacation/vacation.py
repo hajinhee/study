@@ -18,7 +18,6 @@ from tensorflow.keras.utils import to_categorical
 from sklearn.model_selection import GridSearchCV
 from sklearn.impute import SimpleImputer
 
-
 # 데이터 준비
 train = pd.read_csv('dacon/vacation/data/train.csv')
 test = pd.read_csv('dacon/vacation/data/test.csv') 
@@ -26,6 +25,8 @@ sample_submission = pd.read_csv('dacon/vacation/data/sample_submission.csv')
 
 # 데이터 확인
 # ic(train.info())
+ic(train.describe())  # 수치형 예측변수 요약
+ic(train.describe(include='object'))  # 문자형 예측변수 요약
 
 # 데이터 시각화
 # plt.hist(train.ProdTaken)
@@ -36,7 +37,7 @@ sample_submission = pd.read_csv('dacon/vacation/data/sample_submission.csv')
 # ic(sample_submission.isna().sum())
 
 # 상관관계 분석도
-plt.figure(figsize=(10,8))
+plt.figure(figsize=(10, 8))
 heat_table = train.corr()
 mask = np.zeros_like(heat_table)
 mask[np.triu_indices_from(mask)] = True
@@ -44,7 +45,7 @@ heatmap_ax = sns.heatmap(heat_table, annot=True, mask = mask, cmap='coolwarm', v
 heatmap_ax.set_xticklabels(heatmap_ax.get_xticklabels(), fontsize=10, rotation=90)
 heatmap_ax.set_yticklabels(heatmap_ax.get_yticklabels(), fontsize=10)
 plt.title('correlation between features', fontsize=20)
-# plt.show()
+plt.show()
 
 # 고객의 제품 인지 방법 (회사의 홍보 or 스스로 검색) mapping
 for these in [train, test]:
@@ -80,6 +81,17 @@ for these in [train, test]:
         these['PreferredPropertyStar'].fillna(these.groupby('NumberOfTrips')['PreferredPropertyStar'].transform('mean'), inplace=True)
         these['Age'].fillna(these.groupby('Designation')['Age'].transform('mean'), inplace=True)
 
+# 이상치 확인
+plt.scatter(train.NumberOfTrips, train.PreferredPropertyStar)
+plt.xlabel('NumberOfTrips')
+plt.ylabel('PreferredPropertyStar')
+# plt.show()
+
+# 이상치 제거
+# ic(train['PreferredPropertyStar'].sort_values(ascending=False), '\n')
+# ic(train.iloc[[987]])
+train.drop(index=[189, 604, 1338, 987], inplace=True)
+
 # 스케일링
 # scaler = MinMaxScaler()
 scaler = StandardScaler()
@@ -89,8 +101,8 @@ train[['Age', 'DurationOfPitch']] = scaler.fit_transform(train[['Age', 'Duration
 test[['Age', 'DurationOfPitch']] = scaler.transform(test[['Age', 'DurationOfPitch']])
 
 # train을 x, y로 나누고 불필요한 컬럼 제거
-train.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'MonthlyIncome', 'NumberOfTrips', 'NumberOfFollowups'], axis=1, inplace=True)
-test.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'MonthlyIncome', 'NumberOfTrips', 'NumberOfFollowups'], axis=1, inplace=True)
+train.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'NumberOfTrips', 'MonthlyIncome', 'NumberOfFollowups'], axis=1, inplace=True)
+test.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'NumberOfTrips', 'MonthlyIncome', 'NumberOfFollowups'], axis=1, inplace=True)
 x = train.drop(columns=['ProdTaken'], axis=1)
 y = train[['ProdTaken']]
 
