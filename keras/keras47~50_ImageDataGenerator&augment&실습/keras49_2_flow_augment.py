@@ -2,43 +2,49 @@ from tensorflow.keras import datasets
 from tensorflow.keras.datasets import fashion_mnist
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import numpy as np
+from icecream import ic
+import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
+
+#1. 데이터
 (x_train, y_train),(x_test,y_test) = fashion_mnist.load_data()
-
-print(type(x_train),len(x_train),x_train.shape)
-
+ic(type(x_train), len(x_train), x_train.shape) 
+'''
+type(x_train): <class 'numpy.ndarray'>
+len(x_train): 60000
+x_train.shape: (60000, 28, 28)
+'''
 train_datagen = ImageDataGenerator(    
-    rescale=1./255,                    
-    horizontal_flip=True,               
-    #vertical_flip=True,                                      
-    width_shift_range=0.3,            
-    height_shift_range=0.3,   
-    #rotation_range=5,               
-    zoom_range=0.3,                 
-    #shear_range=0.7,                    
+    rescale=1./255,  # 스케일링
+    horizontal_flip=True,  # 좌우반전
+    #vertical_flip=True,  # 상하반전
+    width_shift_range=0.3,  # 좌우이동
+    height_shift_range=0.3,  # 상하이동
+    #rotation_range=5,  # 회전
+    zoom_range=0.3,  # 확대
+    #shear_range=0.7,  # 기울기
     fill_mode='nearest'        
 )
 
 augment_size = 40000
-randidx = np.random.randint(x_train.shape[0],size=augment_size)
-# x_train은 60000,28,28 이중에 0번째를 가져왔으므로 60000 (0~59999)중에서 40000개를 랜덤하게 중복없이 뽑겠다는 의미.
-# 이게 뭔 뜻이냐. 60000장중에 랜덤하게 40000장을 뽑아서 이 40000장을 변환하겠다. 
-#print(x_train.shape[0])                     # 60000
-#print(randidx)                              # 랜덤한 수가 40000개 들어있다.
-#print(np.min(randidx), np.max(randidx))     # 0 59999
+randidx = np.random.randint(x_train.shape[0], size=augment_size)  # np.random.randint(n, size) -> n범위에서 size만큼의 임의의 정수를 출력
+# x_train.shape = (60000, 28, 28), x_train.shape[0] = 60000 --> 60000개 내에서 40000개의 임의의 정수 출력
+ic(randidx) 
+'''
+[49754, 33291, 54091, ..., 25988, 45996, 39635]
+'''
 
-x_augmented = x_train[randidx].copy()      # .copy는 메모리에 한번 더 실어줘서 안정성을 주기위해 함.
-y_augmented = y_train[randidx].copy()      # x,y 둘다 40000개이며 (40000,28,28) (40000,)
-# 중요** 데이터셋 합칠때 merge와 concatenate 
+x_augmented = x_train[randidx].copy()  # (40000, 28, 28)
+y_augmented = y_train[randidx].copy()  # (40000,)     
 
-x_augmented = x_augmented.reshape(x_augmented.shape[0],x_augmented.shape[1],x_augmented.shape[2],1)
-x_train = x_train.reshape(60000,28,28,1)
-x_test = x_test.reshape(x_test.shape[0],28,28,1)
+x_augmented = x_augmented.reshape(x_augmented.shape[0], x_augmented.shape[1], x_augmented.shape[2], 1)  #  4차원 변환
+x_train = x_train.reshape(60000, 28, 28, 1)  # 4차원 변환 
+x_test = x_test.reshape(x_test.shape[0], 28, 28, 1)  # 4차원 변환
 
-import matplotlib.pyplot as plt
-plt.figure(figsize=(7,7))
+plt.figure(figsize=(7, 7))
 for i in range(20):
-    plt.subplot(8,8,i+1)
+    plt.subplot(8, 8, i+1)
     plt.axis('off')
     plt.imshow(x_augmented[i], cmap='gray')
 plt.show()  
@@ -46,32 +52,25 @@ plt.show()
 x_augmented = train_datagen.flow(
     x_augmented, np.zeros(augment_size),
     batch_size=augment_size, shuffle=False
-).next()[0]                                     
-# 이미지데이터제너레이터해서 x값과 y값에 각각 값이 들어가는데 np.zeros로 일단 0값으로 다 들어가는데 .next()하고 [0]을 붙여줘서 
-# x값만 가져와서 40000번 반복해서 여기서 y값은 drop된다. 
+).next()[0]  # next()[0] -> x값만
 
-import matplotlib.pyplot as plt
 plt.figure(figsize=(7,7))
 for i in range(20):
-    plt.subplot(8,8,i+1)
+    plt.subplot(8, 8, i+1)
     plt.axis('off')
     plt.imshow(x_augmented[i], cmap='gray')
 plt.show()   
 
-#print(x_augmented)
-#print(x_augmented.shape)
-
-x_train = np.concatenate((x_train, x_augmented))   # concatenate 괄호 2개 씀 (()) 왜 why..? axis 때문?
+x_train = np.concatenate((x_train, x_augmented))  # type(x_train): <class 'numpy.ndarray'>, len(x_train): 100000
 y_train = np.concatenate((y_train, y_augmented))
-#print(x_train)
-#print(x_train.shape, y_train.shape)
+'''
+np.concatenate((a1a1a_1,a2a2a_2,...), axis=0)
+-a1a1a_1,a2a2a_2,... : ndarray이며 반드시 같은 shape여야 한다.
+-axis : 2차원일 때 0=행, 1=열, 3차원일 때 0=깊이(차원), 1=행, 2=열 --> default 0
 
-#print(x_train[10000])
-#print(y_train[10000])
+축에 따라서 수직, 수평, 깊이로 합칠 수 있고 axis로 설정하고 각 축마다 대체 메소드가 있다.
+데이터를 쌓는 자료구조인 stack을 따서 만든 것으로 예상되는데,
+수직(axis=0)일때는 np.vstack, 수평(axis=1)일때는 np.hstack, 깊이(depth)는 np.dstack으로 할 수 있다.
+'''
 
-# print(y_train[70000])
-# print(y_train[80000])
-# print(y_train[90000])
-# print(y_train[99999])
-
-print(type(x_train),len(x_train))
+ic(type(x_train), len(x_train))

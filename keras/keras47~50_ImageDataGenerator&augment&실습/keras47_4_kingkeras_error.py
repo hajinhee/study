@@ -8,8 +8,8 @@ from tensorflow.keras.layers import Dense, Conv2D, Flatten
 #1. 데이터
 train_datagen = ImageDataGenerator(
     rescale=1./255,
-    horizontal_flip=True,  # 상하반전
-    vertical_flip=True,  # 좌우반전
+    horizontal_flip=True,  # 좌우반전
+    vertical_flip=True,  # 상하반전
     width_shift_range=0.1,  # 좌우이동
     height_shift_range=0.1,  # 상하이동
     rotation_range=5,  # 회전

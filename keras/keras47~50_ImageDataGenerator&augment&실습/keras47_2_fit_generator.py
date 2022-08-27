@@ -11,8 +11,8 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 #1. 데이터 로드 및 전처리
 train_datagen = ImageDataGenerator(    
     rescale=1./255,
-    horizontal_flip=True,  # 상하반전
-    vertical_flip=True,  # 좌우반전
+    horizontal_flip=True,  # 좌우반전
+    vertical_flip=True,  # 상하반전
     width_shift_range=0.1,  # 좌우이동
     height_shift_range=0.1,  # 상하이동
     rotation_range=5,  # 회전

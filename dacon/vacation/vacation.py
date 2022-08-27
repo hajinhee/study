@@ -95,8 +95,8 @@ train.drop(index=[189, 604, 1338, 987], inplace=True)
 # 스케일링
 # scaler = MinMaxScaler()
 # scaler = StandardScaler()
-# scaler = RobustScaler()
-scaler = MaxAbsScaler()
+scaler = RobustScaler()
+# scaler = MaxAbsScaler()
 train[['Age', 'DurationOfPitch']] = scaler.fit_transform(train[['Age', 'DurationOfPitch']])
 test[['Age', 'DurationOfPitch']] = scaler.transform(test[['Age', 'DurationOfPitch']])
 ic(train.describe())  
@@ -132,7 +132,6 @@ model.fit(x, y.values.ravel())
 
 score = cross_val_score(model, x, y.values.ravel(), cv=k_fold, n_jobs=-1, scoring='accuracy')
 ic(score, np.mean(score)) 
-
 # KFold 교차검증
 # k_fold = KFold(n_splits=10, shuffle=True, random_state=0)
 # score = cross_val_score(RandomForestClassifier(), x, y, cv=k_fold, n_jobs=1, scoring='accuracy')
