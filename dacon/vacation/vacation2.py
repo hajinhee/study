@@ -55,7 +55,6 @@ for o_col in object_columns:
     encoder.fit(train_nona[o_col])
     test[o_col] = encoder.transform(test[o_col])
 
-
 #상관관계 분석도
 plt.figure(figsize=(10,8))
 heat_table = train.corr()
@@ -66,7 +65,6 @@ heatmap_ax.set_xticklabels(heatmap_ax.get_xticklabels(), fontsize=10, rotation=9
 heatmap_ax.set_yticklabels(heatmap_ax.get_yticklabels(), fontsize=10)
 plt.title('correlation between features', fontsize=20)
 # plt.show()
-
 
 # 스케일링
 # scaler = MinMaxScaler()

@@ -25,7 +25,7 @@ model.add(Embedding(28, 10))
 Embedding()
 양의 정수(색인)를 고정된 크기의 밀집 벡터로 전환 --> 예) [[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]
 input_dim: len(token.word_index) --> 단어 딕셔너리 개수
-output_dim:	밀집 임베딩의 치수
+output_dim: 밀집 임베딩의 치수
 input_length: 열(가장 긴 문장의 단어 개수)
 ''' 
 model.add(LSTM(32))
