@@ -171,7 +171,7 @@ cat_params = {
     'od_pval': [0.0],
 }
                              
-cat = CatBoostClassifier(verbose=False, depth=14, n_estimators=200)  # 데이터에 범주형 변수가 많을 경우 유용
+cat = CatBoostClassifier(verbose=False, depth=14, n_estimators=200, allow_writing_files=False)  # 데이터에 범주형 변수가 많을 경우 유용
 grid_cv = GridSearchCV(cat,
                        param_grid=cat_params,
                        cv=k_fold,
