@@ -45,6 +45,7 @@ model.fit(pad_x, labels, epochs=100, batch_size=2)
 #4. 평가, 예측
 acc = model.evaluate(pad_x, labels, batch_size=1)[1]  # accuracy
 print('[accuracy] : ', acc)  # [accuracy] :  1.0
+
 x_test = ['영화가 너무 재미없어요 최악이에요']  # [[27, 1, 6, 7]]
 token.fit_on_texts(x_test)
 x_test = token.texts_to_sequences(x_test)  

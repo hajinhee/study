@@ -20,12 +20,14 @@ pad_x = pad_sequences(x, padding='pre', maxlen=5)  # (12, 5)
 
 # 2. 모델링
 model = Sequential()
+model.add(Embedding(28, 10)) 
 '''
-임베딩(embedding)은 변환한 벡터들이 위치한 공간이다. 
-케라스에서 제공하는 도구인 Embedding()는 단어를 랜덤한 값을 가지는 밀집 벡터로 변환한 뒤에, 
-인공 신경망의 가중치를 학습하는 것과 같은 방식으로 단어 벡터를 학습하는 방법을 사용한다.
-'''
-model.add(Embedding(28, 10))  
+Embedding()
+양의 정수(색인)를 고정된 크기의 밀집 벡터로 전환 --> 예) [[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]
+input_dim: len(token.word_index) --> 단어 딕셔너리 개수
+output_dim:	밀집 임베딩의 치수
+input_length: 열(가장 긴 문장의 단어 개수)
+''' 
 model.add(LSTM(32))
 model.add(Dense(2, activation='softmax'))
 
@@ -40,7 +42,6 @@ print('acc : ', acc)  # acc :  1.0
 x_test = ['영화가 정말 재밌어요 참 최고예요']  
 token.fit_on_texts(x_test)  # 문장 리스트화
 x_test = token.texts_to_sequences(x_test)  # [[3, 5, 1, 4, 6]] (1, 5)
-
 y_pred = model.predict(x_test)  # [[0.00158436 0.9984156 ]]
 print(y_pred)  
 

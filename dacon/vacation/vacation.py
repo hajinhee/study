@@ -25,8 +25,8 @@ sample_submission = pd.read_csv('dacon/vacation/data/sample_submission.csv')
 
 # 데이터 확인
 # ic(train.info())
-ic(train.describe())  # 수치형 예측변수 요약
-ic(train.describe(include='object'))  # 문자형 예측변수 요약
+# ic(train.describe())  # 수치형 예측변수 요약
+# ic(train.describe(include='object'))  # 문자형 예측변수 요약
 
 # 데이터 시각화
 # plt.hist(train.ProdTaken)
@@ -37,14 +37,14 @@ ic(train.describe(include='object'))  # 문자형 예측변수 요약
 # ic(sample_submission.isna().sum())
 
 # 상관관계 분석도
-plt.figure(figsize=(10, 8))
-heat_table = train.corr()
-mask = np.zeros_like(heat_table)
-mask[np.triu_indices_from(mask)] = True
-heatmap_ax = sns.heatmap(heat_table, annot=True, mask = mask, cmap='coolwarm', vmin=-1, vmax=1)
-heatmap_ax.set_xticklabels(heatmap_ax.get_xticklabels(), fontsize=10, rotation=90)
-heatmap_ax.set_yticklabels(heatmap_ax.get_yticklabels(), fontsize=10)
-plt.title('correlation between features', fontsize=20)
+# plt.figure(figsize=(10, 8))
+# heat_table = train.corr()
+# mask = np.zeros_like(heat_table)
+# mask[np.triu_indices_from(mask)] = True
+# heatmap_ax = sns.heatmap(heat_table, annot=True, mask = mask, cmap='coolwarm', vmin=-1, vmax=1)
+# heatmap_ax.set_xticklabels(heatmap_ax.get_xticklabels(), fontsize=10, rotation=90)
+# heatmap_ax.set_yticklabels(heatmap_ax.get_yticklabels(), fontsize=10)
+# plt.title('correlation between features', fontsize=20)
 # plt.show()
 
 # 고객의 제품 인지 방법 (회사의 홍보 or 스스로 검색) mapping
@@ -71,6 +71,17 @@ for these in [train, test]:
 for these in [train, test]:
     these['Designation'] = these['Designation'].map({'AVP': 0, 'VP': 1, 'Manager': 2, 'Senior Manager':3, 'Executive': 4})
 
+# 이상치 확인
+# plt.scatter(train.NumberOfFollowups, train.NumberOfPersonVisiting)
+# plt.xlabel('NumberOfFollowups')
+# plt.ylabel('NumberOfPersonVisiting')
+# plt.show()
+
+# 이상치 제거
+# ic(train['NumberOfFollowups'].sort_values(ascending=False), '\n')
+# ic(train.iloc[[987]])
+train.drop(index=[189, 604, 1338, 987], inplace=True)
+
 # 결측치 처리
 ls = ['DurationOfPitch', 'TypeofContact']
 for these in [train, test]:
@@ -81,25 +92,14 @@ for these in [train, test]:
         these['PreferredPropertyStar'].fillna(these.groupby('NumberOfTrips')['PreferredPropertyStar'].transform('mean'), inplace=True)
         these['Age'].fillna(these.groupby('Designation')['Age'].transform('mean'), inplace=True)
 
-# 이상치 확인
-# plt.scatter(train.NumberOfTrips, train.PreferredPropertyStar)
-# plt.xlabel('NumberOfTrips')
-# plt.ylabel('PreferredPropertyStar')
-# plt.show()
-
-# 이상치 제거
-# ic(train['PreferredPropertyStar'].sort_values(ascending=False), '\n')
-# ic(train.iloc[[987]])
-train.drop(index=[189, 604, 1338, 987], inplace=True)
-
-# 스케일링
+# 스케일
 # scaler = MinMaxScaler()
 # scaler = StandardScaler()
 scaler = RobustScaler()
 # scaler = MaxAbsScaler()
 train[['Age', 'DurationOfPitch']] = scaler.fit_transform(train[['Age', 'DurationOfPitch']])
 test[['Age', 'DurationOfPitch']] = scaler.transform(test[['Age', 'DurationOfPitch']])
-ic(train.describe())  
+# ic(train.describe())  
 
 # train을 x, y로 나누고 불필요한 컬럼 제거
 train.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', 'OwnCar', 'NumberOfTrips', 'MonthlyIncome', 'NumberOfFollowups'], axis=1, inplace=True)
@@ -111,7 +111,7 @@ k_fold = KFold(n_splits=10, shuffle=True, random_state=66)
 
 rf = ExtraTreesClassifier(n_jobs=-1)
 params = {
-    'n_estimators' : (100, 150, 200, 250, 300, 400, 450, 500, 550, 600, 650, 700)
+    'n_estimators' : (100, 150, 200, 250, 300, 400, 450, 500, 550, 600, 650, 700, 750, 800)
 }
 
 grid_cv = GridSearchCV(rf,
