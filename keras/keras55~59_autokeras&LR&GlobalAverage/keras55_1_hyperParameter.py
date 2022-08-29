@@ -11,18 +11,18 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 import os
 
-#1. 데이터 로드 및 정제
+#1. load data
 (x_train, y_train), (x_test,y_test) = mnist.load_data()
-x_train = x_train.reshape(60000, 28*28).astype('float32')/255   # int -> float, Minmax, 3d -> 2d
+x_train = x_train.reshape(60000, 28*28).astype('float32')/255  # int -> float, Minmax, 3d -> 2d
 x_test = x_test.reshape(10000, 28*28).astype('float32')/255         
 ic(np.unique(y_train, return_counts=True))  # [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] -> 다중분류
 
-# 원핫인코딩
+# one hot encoding
 y_train = to_categorical(y_train)
 y_test = to_categorical(y_test)
 ic(len(y_train))  # 60000
 
-#2. 모델링
+#2. modeling
 def build_model(drop=0.5, optimizer='adam', activation='relu'):
     inputs = Input(shape=(28*28), name='input')
     x = Dense(512, activation=activation, name='hidden1')(inputs)
@@ -45,24 +45,32 @@ def create_hyperparameter():
 
 hyperparameters = create_hyperparameter()
 keras_model = KerasClassifier(build_fn=build_model, verbose=1)  
-model = GridSearchCV(keras_model, hyperparameters, cv=3, verbose=1)
+model = GridSearchCV(keras_model, param_grid=hyperparameters, cv=3, verbose=1)
 
+'''
+GridSearchCV
+-estimator : classifier, regressor, pipeline 등 가능
+-param_grid : 튜닝을 위해 파라미터, 사용될 파라미터를 dictionary 형태로 만들어서 넣는다.
+-cv : 교차 검증에서 몇개로 분할되는지 지정한다.
+-scoring : 예측 성능을 측정할 평가 방법을 넣는다. 보통 'accuracy' 로 지정하여서 정확도로 성능 평가를 한다.
+-refit : True가 디폴트로 True로 하면 최적의 하이퍼 파라미터를 찾아서 재학습 시킨다.
+'''
+
+#3. train
 start = time.time()
 model.fit(x_train, y_train, verbose=1, epochs=30, validation_split=0.2)
-#estimator should be an estimator implementing 'fit' method, <function build_model at 0x000001FD710C9160> was passed
-#GridSearchCV는 머신러닝에서 썼었고 지금은 딥러닝이다. 서로 짝을 맞춰줘야한다.
 end = time.time()
 
-print("걸린 시간은요 ~ : ", end - start)
-print("model.best_params_ : ",model.best_params_)
-print("model.best_estimator_",model.best_estimator_)
-print("model.best_score_",model.best_score_)
-print("model.score",model.score)
+print('걸린 시간: ', end-start)
+print('model.best_params_ : ', model.best_params_)  # 최고 점수를 낸 파라미터
+print('model.best_estimator_', model.best_estimator_)  # 최고 점수를 낸 파라미터를 가진 모형
+print('model.best_score_', model.best_score_)  # 최고 점수
+print('model.score', model.score)
 
+#4. predict
 y_predict = model.predict(x_test)
-print("accuracy_score : ", accuracy_score(y_test,y_predict))
+print('accuracy_score : ', accuracy_score(y_test, y_predict))
 
 # 가중치 save
-path = os.getcwd() + '/'
-model.save(path + "keras55_1_save_model.h5")
-model.save_weights(path + "keras55_1_save_weights.h5")
+model.save('./_save/keras55_1_save_model.h5')
+model.save_weights('./_save/keras55_1_save_weights.h5')

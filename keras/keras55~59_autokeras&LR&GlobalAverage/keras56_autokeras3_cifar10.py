@@ -1,22 +1,19 @@
 import autokeras as ak, tensorflow as tf
 
-#1. 데이터 
+#1. load data 
 (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
 
-#2. 모델
+#2. modeling
 model = ak.ImageClassifier(
     overwrite=True,
-    max_trials=5
+    max_trials=2  # max_trials만큼 모델을 돌려서 여러 개의 'accuracy'를 뽑아내고 그 중에 제일 좋은 값을 사용
 )
 
-#3. 컴파일,훈련
+#3. compile, train
 model.fit(x_train, y_train, epochs=5)
 
-#4. 평가, 예측
-y_predict = model.predict(x_test)
+#4. evaluate, predict
+loss = model.evaluate(x_test, y_test)
+print('[loss]: ', loss[0], '[accuracy_score]: ', loss[1])    
 
-results = model.evaluate(x_test,y_test)
-print(results)      # [0.0270724855363369, 0.9911999702453613] 2개의 값을 던져준다. 
-# max_trials=2          앞의 값은 loss,     뒤의 값은 acc이다.  max_trials의 값만큼 모델을 돌려서
-# 여러개의 acc를 뽑아내고 그 중에 제일 좋은 값을 쓴다. 
-model.summary()
+
