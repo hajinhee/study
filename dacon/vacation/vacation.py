@@ -112,50 +112,51 @@ test.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', '
 x = train.drop(columns=['ProdTaken'], axis=1)
 y = train[['ProdTaken']]
 
-k_fold = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)  # StratifiedKFold --> 분류문제에 사용
-x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.9, shuffle=True, random_state=1234, stratify=y)  # stratify=y -> y개수만큼 컷
+k_fold = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)  # StratifiedKFold -> 분류문제에 사용
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.9, shuffle=True, random_state=1234, stratify=y) 
 
+'''
 # BayesianOptimization
-# def CB_opt(n_estimators, depth, learning_rate, 
-#             l2_leaf_reg, model_size_reg, od_pval): 
-#     scores = []
-#     # skf = k_fold
-# #   for train_index, test_index in skf.split(x, y):
+def CB_opt(n_estimators, depth, learning_rate, 
+            l2_leaf_reg, model_size_reg, od_pval): 
+    scores = []
+    # skf = k_fold
+#   for train_index, test_index in skf.split(x, y):
     
-# #     x_train, x_val = x.iloc[train_index], x.iloc[test_index]
-# #     y_train, y_val = y.iloc[train_index], y.iloc[test_index]
+#     x_train, x_val = x.iloc[train_index], x.iloc[test_index]
+#     y_train, y_val = y.iloc[train_index], y.iloc[test_index]
  
-#     reg = CatBoostClassifier(verbose=0,
-#                             n_estimators=int(n_estimators),
-#                             learning_rate=learning_rate,
-#                             l2_leaf_reg=l2_leaf_reg,
-#                             max_depth=int(depth),
-#                             random_state=42,
-#                             grow_policy='Lossguide',
-#                             use_best_model=True, 
-#                             model_size_reg=model_size_reg,
-#                             od_pval=od_pval
-#                             )
-#     reg.fit(x_train, y_train, eval_set=(x_test, y_test))
-#     scores.append(matthews_corrcoef(y_test, reg.predict(x_test)))
-#     return np.mean(scores)
+    reg = CatBoostClassifier(verbose=0,
+                            n_estimators=int(n_estimators),
+                            learning_rate=learning_rate,
+                            l2_leaf_reg=l2_leaf_reg,
+                            max_depth=int(depth),
+                            random_state=42,
+                            grow_policy='Lossguide',
+                            use_best_model=True, 
+                            model_size_reg=model_size_reg,
+                            od_pval=od_pval
+                            )
+    reg.fit(x_train, y_train, eval_set=(x_test, y_test))
+    scores.append(matthews_corrcoef(y_test, reg.predict(x_test)))
+    return np.mean(scores)
 
-# pbounds = {'n_estimators': (150, 1000),
-#            'depth': (4, 12),
-#            'learning_rate': (.01, 0.3),
-#            'l2_leaf_reg': (0, 10),
-#            'model_size_reg': (0, 10),
-#            'od_pval' : (0, 5)
-# }
-# optimizer = BayesianOptimization(
-#     f=CB_opt,
-#     pbounds=pbounds,
-#     verbose=0,
-#     random_state=42,
-# )
-# optimizer.maximize(init_points=2, n_iter=20)
-# ic(optimizer.max)
-
+pbounds = {'n_estimators': (150, 1000),
+           'depth': (4, 12),
+           'learning_rate': (.01, 0.3),
+           'l2_leaf_reg': (0, 10),
+           'model_size_reg': (0, 10),
+           'od_pval' : (0, 5)
+}
+optimizer = BayesianOptimization(
+    f=CB_opt,
+    pbounds=pbounds,
+    verbose=0,
+    random_state=42,
+)
+optimizer.maximize(init_points=2, n_iter=20)
+ic(optimizer.max)
+'''
 
 # rf_params = {
 #     'n_estimators' : [100, 150, 200, 250, 300, 400, 450, 500, 550, 600, 650, 700, 750, 800]
@@ -171,7 +172,7 @@ cat_params = {
     'od_pval': [0.0],
 }
                              
-cat = CatBoostClassifier(verbose=False, depth=14, n_estimators=200, allow_writing_files=False)  # 데이터에 범주형 변수가 많을 경우 유용
+cat = CatBoostClassifier(verbose=False, depth=14, n_estimators=200, allow_writing_files=False)  # CatBoostClassifier: 데이터에 범주형 변수가 많을 경우 유용
 grid_cv = GridSearchCV(cat,
                        param_grid=cat_params,
                        cv=k_fold,
@@ -188,8 +189,8 @@ y_pred = model.predict(x_test)
 ic('score:', accuracy_score(y_pred, y_test)) 
 
 # KFold 교차검증
-score = cross_val_score(model, x, y.values.ravel(), cv=k_fold, n_jobs=-1, scoring='accuracy')
-ic(score, np.mean(score)) 
+# score = cross_val_score(model, x, y.values.ravel(), cv=k_fold, n_jobs=-1, scoring='accuracy')
+# ic(score, np.mean(score)) 
 
 # 데이터 submit
 y_summit = model.predict(test)

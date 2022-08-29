@@ -1,6 +1,6 @@
 import numpy as np, matplotlib.pyplot as plt
 
-def softmax(x):
+def softmax(x):  # 0.0~1.0 
     return np.exp(x) / np.sum(np.exp(x))
 
 x = np.arange(-5, 5, 0.1)
@@ -14,5 +14,4 @@ plt.pie(ratio, labels, shadow=True, startangle=90)
 # plt.grid()
 plt.show()
 
-# activation의 주 목적.     레이어에서 다음레이어로 건너갈때 값을 제한시켜줌으로써
-# 특징을 유지한채로 값만 줄여서 연산량을 줄여준다.
+# activation funtion: 레이어에서 다음 레이어로 넘어갈 때 특징은 유지한채로 값만 제한함으로써 연산량을 줄여준다.
