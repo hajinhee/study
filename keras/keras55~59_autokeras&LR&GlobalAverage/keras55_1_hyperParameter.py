@@ -46,6 +46,7 @@ def create_hyperparameter():
 hyperparameters = create_hyperparameter()
 keras_model = KerasClassifier(build_fn=build_model, verbose=1)  
 model = GridSearchCV(keras_model, param_grid=hyperparameters, cv=3, verbose=1)
+<<<<<<< HEAD
 
 '''
 GridSearchCV
@@ -56,6 +57,17 @@ GridSearchCV
 -refit : True가 디폴트로 True로 하면 최적의 하이퍼 파라미터를 찾아서 재학습 시킨다.
 '''
 
+=======
+'''
+GridSearchCV
+-estimator : classifier, regressor, pipeline 등 가능
+-param_grid : 튜닝을 위해 파라미터, 사용될 파라미터를 dictionary 형태로 만들어서 넣는다.
+-cv : 교차 검증에서 몇개로 분할되는지 지정한다.
+-scoring : 예측 성능을 측정할 평가 방법을 넣는다. 보통 'accuracy' 로 지정하여서 정확도로 성능 평가를 한다.
+-refit : True가 디폴트로 True로 하면 최적의 하이퍼 파라미터를 찾아서 재학습 시킨다.
+'''
+
+>>>>>>> 3c53c44b23e9b788a428b83c1cc067a4275d80a8
 #3. train
 start = time.time()
 model.fit(x_train, y_train, verbose=1, epochs=30, validation_split=0.2)

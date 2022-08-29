@@ -4,5 +4,9 @@ _save
 _ModelCheckPoint
 _temp
 catboost_info
+<<<<<<< HEAD
 _data
 image_classifier
+=======
+_data
+>>>>>>> 3c53c44b23e9b788a428b83c1cc067a4275d80a8
