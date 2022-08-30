@@ -31,55 +31,62 @@ def load_img_to_numpy(path):
     images = np.array(images)  
     labels = np.array(labels) 
 
+    # LabelEncoder
     le = LabelEncoder()
     labels= le.fit_transform(labels)
     # labels = labels.reshape(-1,1)
-    
     return images, labels
 
-train_path = 'D:\_data\image_classification\cat_dog/training_set/'
-test_path = 'D:\_data\image_classification\cat_dog/test_set/'
 
-x_train,y_train = load_img_to_numpy(train_path)
-x_test,y_test = load_img_to_numpy(test_path)
+train_path = 'keras/data/images/cat_or_dog/train/'
+test_path = 'keras/data/images/cat_or_dog/test/'
 
-model_list = [VGG19(weights='imagenet', include_top=False, input_shape=(100,100,3),pooling='avg',classifier_activation='sigmoid'),
-              Xception(weights='imagenet', include_top=False, input_shape=(100,100,3),pooling='avg',classifier_activation='sigmoid')]
-            # pooling의 역할. 전이학습 모델의 마지막레이어를 flatten넣을지 globalavarge 넣을지 고를 수 있다...
+x_train, y_train = load_img_to_numpy(train_path)
+x_test, y_test = load_img_to_numpy(test_path)
+
+#2. modeling(VGG19, Xception)
+model_list = [VGG19(weights='imagenet', include_top=False, input_shape=(100,100,3),pooling='avg', classifier_activation='sigmoid'),
+              Xception(weights='imagenet', include_top=False, input_shape=(100,100,3),pooling='avg', classifier_activation='sigmoid')]
 for model in model_list:
-    print(f"모델명 : {model.name}")
     TL_model = model
-    x_train = preprocess_input(x_train)   #  요기 전처리 과정 추가.
+    # preprocess
+    x_train = preprocess_input(x_train)
     x_test = preprocess_input(x_test) 
     model = Sequential()
     model.add(TL_model)    
-    model.add(Dense(128,activation='relu'))
-    model.add(Dense(64,activation='relu'))
-    model.add(Dense(1,activation='sigmoid'))
-    
+    # classifier 
+    model.add(Dense(128, activation='relu'))
+    model.add(Dense(64, activation='relu'))
+    model.add(Dense(1, activation='sigmoid'))
+
+    #3. compile, train
     optimizer = Adam(learning_rate=0.0001)  # 1e-4     
-    lr=ReduceLROnPlateau(monitor= "val_acc", patience = 3, mode='max',factor = 0.1, min_lr=0.00001,verbose=False)
-    es = EarlyStopping(monitor ="val_acc", patience=15, mode='max',verbose=1,restore_best_weights=True)
+    lr=ReduceLROnPlateau(monitor='val_acc', patience=3, mode='max', factor=0.1, min_lr=0.00001, verbose=False)
+    es = EarlyStopping(monitor='val_acc', patience=15, mode='max', verbose=1, restore_best_weights=True)
     model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics='acc')
     
     start = time.time()
-    model.fit(x_train,y_train,batch_size=50,epochs=1000,validation_split=0.2,callbacks=[lr,es], verbose=1)
+    model.fit(x_train, y_train, batch_size=32, epochs=10, validation_split=0.2, callbacks=[lr, es], verbose=1)
     end = time.time()
     
-    loss, Acc = model.evaluate(x_test,y_test,batch_size=50,verbose=False)
+    #4. evaluate
+    loss, acc = model.evaluate(x_test, y_test, batch_size=32, verbose=True)
+    print(f"Model : {TL_model.name}")
+    print(f"Time : {round(end-start, 4)}")
+    print(f"loss : {round(loss, 4)}")
+    print(f"Acc : {round(acc, 4)}")
     
-    print(f"Time : {round(end - start,4)}")
-    print(f"loss : {round(loss,4)}")
-    print(f"Acc : {round(Acc,4)}")
+# Error: If you want to see a list of allocated tensors when OOM happens, add report_tensor_allocations_upon_oom to RunOptions for current allocation info. This isn't available when running in Eager mode.
+# -----> GPU 메모리 부족, batch_size 100 -> 32로 수정   
 
 '''
-모델명 : vgg19
-Time : 365.7781
-loss : 0.2059
-Acc : 0.9224
+Model : vgg19
+Time : 23.7472
+loss : 0.7036
+Acc : 0.6337
 
-모델명 : xception
-Time : 791.78
-loss : 0.2327
-Acc : 0.9417
+Model : xception
+Time : 22.4231
+loss : 0.5288
+Acc : 0.7673
 '''

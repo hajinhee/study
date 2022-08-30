@@ -5,88 +5,87 @@ from tensorflow.keras.layers import Dense,GlobalAveragePooling2D,Flatten,GlobalA
 from keras.callbacks import EarlyStopping , ReduceLROnPlateau
 from tensorflow.keras.optimizers import Adam
 import numpy as np, time, warnings, os
+from icecream import ic
 # warnings.filterwarnings(action='ignore')
 
-path = 'D:\_data\image_classification\horse-or-human/'
-'''
-# 나중에 사진 변환하고 저장할때 비교를 쉽게하기 위해 기존 사진들의 이름을 따서 저장.
-horses = os.listdir(path+'horses')         
-humans = os.listdir(path+'humans')                  
+#1. load images 
+path = 'keras/data/images/horse_or_human/train/'
+horses = os.listdir(path+'horses')  # 500       
+humans = os.listdir(path+'humans')  # 527
+ic(len(horses), len(humans))   
 
-# print(len(horses),len(humans))    # 500 527
-# 딱히 증폭시켜서 장수의 밸런스를 맞춰줄 필요는 없을듯 하다.
+#################################### Save ####################################
+# img_datagen = ImageDataGenerator(rescale= 1/255., validation_split=0.2)
 
-# save 구간 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# horsehuman_train = img_datagen.flow_from_directory(      
+#     path,
+#     target_size=(200, 200),                                                                       
+#     batch_size=500,                                   
+#     class_mode='binary',  
+#     classes= ['horses', 'humans'],  # horses=0, humans=1
+#     subset = 'training' 
+# )   # Found 822 images belonging to 2 classes.
 
-img_datagen = ImageDataGenerator(rescale= 1/255.,validation_split=0.2)
+# horsehuman_test = img_datagen.flow_from_directory(         
+#     path,
+#     target_size=(200, 200),
+#     batch_size=500,
+#     class_mode='binary',  
+#     classes= ['horses', 'humans'],
+#     subset='validation'                              
+# )   # Found 205 images belonging to 2 classes.
 
-horsehuman_train = img_datagen.flow_from_directory(      
-    path,
-    target_size = (200, 200),                                                                       
-    batch_size=100000,                                   
-    class_mode='binary',  
-    classes= ['horses','humans'],
-    subset = 'training'        
-)   
+# np.save(path + 'horsehuman_train_x', arr=horsehuman_train[0][0])  # x_train
+# np.save(path + 'horsehuman_train_y', arr=horsehuman_train[0][1])  # y_train
+# np.save(path + 'horsehuman_test_x', arr=horsehuman_test[0][0])  # x_test
+# np.save(path + 'horsehuman_test_y', arr=horsehuman_test[0][1])  # y_test
 
-horsehuman_test = img_datagen.flow_from_directory(         
-    path,
-    target_size=(200,200),
-    batch_size=1000000,
-    class_mode='binary',  
-    classes= ['horses','humans'],
-    subset='validation'                              
-) 
+#################################### Load ####################################
+#1. load data
+x_train = np.load(path + 'horsehuman_train_x.npy')  # (500, 200, 200, 3)
+y_train = np.load(path + 'horsehuman_train_y.npy')  # (500,)   
+x_test = np.load(path + 'horsehuman_test_x.npy')  # (205, 200, 200, 3)
+y_test = np.load(path + 'horsehuman_test_y.npy')  # (205,)
 
-np.save(path + 'horsehuman_train_x', arr=horsehuman_train[0][0])    
-np.save(path + 'horsehuman_train_y', arr=horsehuman_train[0][1])    
-np.save(path + 'horsehuman_test_x', arr=horsehuman_test[0][0])      
-np.save(path + 'horsehuman_test_y', arr=horsehuman_test[0][1]) 
-'''
+ic(x_train.shape, y_train.shape, x_test.shape, y_test.shape) 
 
-# load구간 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-x_train = np.load(path + 'horsehuman_train_x.npy')      
-y_train = np.load(path + 'horsehuman_train_y.npy')     
-x_test = np.load(path + 'horsehuman_test_x.npy')       
-y_test = np.load(path + 'horsehuman_test_y.npy')
-print(x_train.shape,y_train.shape,x_test.shape,y_test.shape) # (822, 200, 200, 3) (822,) (205, 200, 200, 3) (205,)
-
-model_list = [VGG19(weights='imagenet', include_top=False, input_shape=(200,200,3),pooling='max',classifier_activation='sigmoid'),
-              Xception(weights='imagenet', include_top=False, input_shape=(200,200,3),pooling='max',classifier_activation='sigmoid')]
-
+#2. modeling(VGG19, Xception)
+model_list = [VGG19(weights='imagenet', include_top=False, input_shape=(200,200,3), pooling='max', classifier_activation='sigmoid'),
+              Xception(weights='imagenet', include_top=False, input_shape=(200,200,3), pooling='max', classifier_activation='sigmoid')]
 for model in model_list:
-    print(f"모델명 : {model.name}")
     TL_model = model
-    TL_model.trainable = True
     model = Sequential()
     model.add(TL_model)    
-    model.add(Dense(128,activation='relu'))
-    model.add(Dense(64,activation='relu'))
-    model.add(Dense(1,activation='sigmoid'))
-    
+    # classifier 
+    model.add(Dense(128, activation='relu'))
+    model.add(Dense(64, activation='relu'))
+    model.add(Dense(1, activation='sigmoid'))
+
+    #3. compile, train
     optimizer = Adam(learning_rate=0.0001)  # 1e-4     
-    lr=ReduceLROnPlateau(monitor= "val_acc", patience = 3, mode='max',factor = 0.1, min_lr=0.00001,verbose=False)
-    es = EarlyStopping(monitor ="val_acc", patience=10, mode='max',verbose=1,restore_best_weights=True)
+    lr=ReduceLROnPlateau(monitor='val_acc', patience=3, mode='max', factor=0.1, min_lr=0.00001, verbose=False)
+    es = EarlyStopping(monitor='val_acc', patience=10, mode='max', verbose=1, restore_best_weights=True)
     model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics='acc')
     
     start = time.time()
-    model.fit(x_train,y_train,batch_size=25,epochs=1000,validation_split=0.2,callbacks=[lr,es], verbose=1)
+    model.fit(x_train, y_train, batch_size=10, epochs=10, validation_split=0.2, callbacks=[lr, es], verbose=1)
     end = time.time()
     
-    loss, Acc = model.evaluate(x_test,y_test,batch_size=25,verbose=False)
-    
-    print(f"Time : {round(end - start,4)}")
-    print(f"loss : {round(loss,4)}")
-    print(f"Acc : {round(Acc,4)}")
-'''
-모델명 : vgg19
-Time : 75.725
-loss : 0.1771
-Acc : 0.9268
+    #4. evaluate
+    loss, acc = model.evaluate(x_test, y_test, batch_size=10, verbose=True)
+    print(f"Model : {TL_model.name}")
+    print(f"Time : {round(end-start, 4)}")
+    print(f"loss : {round(loss, 4)}")
+    print(f"Acc : {round(acc, 4)}")
 
-모델명 : xception
-Time : 108.9116
-loss : 0.003
+'''
+Model : vgg19
+Time : 22.903
+loss : 0.1644
+Acc : 0.95
+
+Model : xception
+Time : 22.3753
+loss : 0.0045
 Acc : 1.0
 '''

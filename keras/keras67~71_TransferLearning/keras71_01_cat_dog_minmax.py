@@ -79,7 +79,7 @@ for model in model_list:
     model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics='acc')
     
     start = time.time()
-    model.fit(x_train, y_train,batch_size=50, epochs=10, validation_split=0.2, callbacks=[lr, es], verbose=1)
+    model.fit(x_train, y_train, batch_size=50, epochs=10, validation_split=0.2, callbacks=[lr, es], verbose=1)
     end = time.time()
     
     #4. evaluate
