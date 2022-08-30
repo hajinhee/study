@@ -14,7 +14,6 @@ model_list = [VGG16(), VGG19(),ResNet50(), ResNet50V2(), ResNet101(), ResNet101V
               NASNetLarge(), NASNetMobile(), EfficientNetB0(), EfficientNetB1(), EfficientNetB7(), Xception()]
 
 for model in model_list:
-    model = model
     print(f"모델명 : {model.name}")
     print(f"전체 가중치 갯수 : {len(model.weights)}")
     print(f"훈련가능 가중치 갯수 : {len(model.trainable_weights)}\n")

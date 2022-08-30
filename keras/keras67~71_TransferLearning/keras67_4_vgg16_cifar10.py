@@ -5,50 +5,48 @@ from tensorflow.keras.datasets import mnist, cifar10, cifar100
 from keras.callbacks import EarlyStopping , ReduceLROnPlateau
 from tensorflow.keras.optimizers import Adam
 import numpy as np, time
+from icecream import ic
 
-(x_train,y_train), (x_test,y_test) = cifar10.load_data()
+#1. load data
+(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+ic(x_train.shape, x_test.shape)  # (50000, 32, 32, 3) (10000, 32, 32, 3)
+ic(len(np.unique(y_test)))  # 10 -> 분류모델
 
-# print(x_train.shape,x_test.shape)         # 32,32,3
-# print(len(np.unique(y_test)))             # 10
+# reshape, normalize
+x_train = x_train.reshape(50000, 32, 32, 3)/255.
+x_test = x_test.reshape(10000, 32, 32, 3)/255.
 
-x_train = x_train.reshape(50000,32,32,3)/255.
-x_test = x_test.reshape(10000,32,32,3)/255.
+# pretrained model 
+vgg16 = VGG16(weights='imagenet', include_top=False, input_shape=(32, 32, 3))
 
-vgg16 = VGG16(weights='imagenet', include_top=False, input_shape=(32,32,3))
-# model = VGG16(weights=None, include_top=True, input_shape=(32,32,3), classes=100, pooling='max')
-
-vgg16.trainable = True     # 가중치를 동결시킨다!
-
+#2. modeling
 model = Sequential()
 model.add(vgg16)
-model.add(Flatten())
-# model.add(GlobalAveragePooling2D())     
+# classifier 
+model.add(Flatten()) # or model.add(GlobalAveragePooling2D())     
 model.add(Dense(1024))
 model.add(Dense(512))
-model.add(Dense(10,activation='softmax'))
+model.add(Dense(10, activation='softmax'))
 
-optimizer = Adam(learning_rate=0.0001)      # 초기 lr이 되게 되게 중요하다
-lr=ReduceLROnPlateau(monitor= "val_acc", patience = 2, mode='max',factor = 0.1, min_lr=0.00001,verbose=1)
-es = EarlyStopping(monitor ="val_acc", patience=10, mode='max',verbose=1,restore_best_weights=True)
+#3. compile, train
+optimizer = Adam(learning_rate=0.0001)
+lr = ReduceLROnPlateau(monitor='val_acc', patience=2, mode='max', factor=0.1, min_lr=0.00001, verbose=1)
+es = EarlyStopping(monitor='val_acc', patience=10, mode='max', verbose=1, restore_best_weights=True)
 model.compile(loss='sparse_categorical_crossentropy', optimizer=optimizer, metrics='acc')
 
 start = time.time()
-model.fit(x_train,y_train,batch_size=100,epochs=10000,validation_split=0.2,callbacks=[lr,es])#,cp
+model.fit(x_train, y_train, batch_size=128, epochs=100, validation_split=0.2, callbacks=[lr, es])
 end = time.time()
-loss, Acc = model.evaluate(x_test,y_test,batch_size=100)
 
-print(f"Time : {round(end - start,4)}")
-print(f"loss : {round(loss,4)}")
-print(f"Acc : {round(Acc,4)}")
+#4. evaluate
+loss, acc = model.evaluate(x_test, y_test, batch_size=128)
+print(f"Time : {round(end - start, 4)}")
+print(f"loss : {round(loss, 4)}")
+print(f"Acc : {round(acc, 4)}")
 
-# 결과 비교
-# vgg trainable : True / False
-# Flatten / Global Average Pooling
-# 위 4개 조합해서 최고결과 뽑고 이전 최고치 acc0.65와 비교
 
-# 출력결과     True/Flat    True/GAP      False/Flat      False/GAP     Defaultvgg16    
-# time :        593.9125    726.1867       157.9657        134.4698     879.0209
-# loss :        0.9263      1.2026         1.1849          1.1839       1.5638
-#  acc :        0.8662      0.8673         0.5899          0.5915       0.7491
-
-# 수정완료
+'''
+Time : 610.8725
+loss : 0.9398
+Acc : 0.8622
+'''

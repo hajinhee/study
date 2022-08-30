@@ -8,28 +8,29 @@ from keras.callbacks import EarlyStopping , ReduceLROnPlateau
 from tensorflow.keras.optimizers import Adam
 import numpy as np, time, warnings, os
 from glob import glob
+from sklearn.preprocessing import LabelEncoder
 from PIL import Image
-
+from icecream import ic
 # warnings.filterwarnings(action='ignore')
 
+#1. load images 
 def load_img_to_numpy(path):
-    
     path = path
     images = []
     labels = []
     
     for filename in glob(path +"*"):
         for img in glob(filename + "/*.jpg"):
-            an_img = Image.open(img).convert('RGB').resize((100,100)) #read img
-            img_array = np.array(an_img) #img to array
-            images.append(img_array) #append array to training_images 
-            label = filename.split('\\')[-1] #get label
-            labels.append(label) #append label
-            
-    images = np.array(images)
-    labels = np.array(labels)
+            an_img = Image.open(img).convert('RGB').resize((100, 100))  # read img
+            img_array = np.array(an_img)  # img to array
+            images.append(img_array)  # append array to training_images 
+            label = filename.split('\\')[-1]  # get label
+            labels.append(label)  # append label
+    
+    # list -> np.array        
+    images = np.array(images)  
+    labels = np.array(labels) 
 
-    from sklearn.preprocessing import LabelEncoder
     le = LabelEncoder()
     labels= le.fit_transform(labels)
     # labels = labels.reshape(-1,1)
