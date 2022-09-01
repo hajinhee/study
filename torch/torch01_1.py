@@ -1,15 +1,13 @@
-# keras 01과 병렬적으로 진행된다.
-
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.optim as optim     # optimizer
-import torch.nn.functional as F # Loss같은거 기능들? 들어가 있다.
+import torch.optim as optim  # optimizer
+import torch.nn.functional as F 
 import time
 
-#1. 데이터 정제해서 값 도출
-x =  np.array([1,2,3])
-y =  np.array([1,2,3])
+#1. data
+x =  np.array([1,2,3])  # (3,)
+y =  np.array([1,2,3])  # (3,)
 
 x = torch.FloatTensor(x).unsqueeze(1)    # torch는 이런식으로 데이터를 받는다.
 y = torch.FloatTensor(y).unsqueeze(1)   # unsqueeze 데이터의 차원을 늘려준다. (3,) -> (3,1)

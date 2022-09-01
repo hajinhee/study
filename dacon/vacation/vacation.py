@@ -142,7 +142,7 @@ def CB_opt(n_estimators, depth, learning_rate,
     return np.mean(scores)
 
 pbounds = {'n_estimators': (150, 1000),
-           'depth': (4, 12),
+           'depth': (4, 15),
            'learning_rate': (.01, 0.3),
            'l2_leaf_reg': (0, 10),
            'model_size_reg': (0, 10),
@@ -182,9 +182,9 @@ grid_cv.fit(x, y.values.ravel())
 ic(grid_cv.best_estimator_, grid_cv.best_params_, grid_cv.best_score_)  # best_score_: 최고 점수, best_params_: 최고 점수를 낸 파라미터, best_estimator_: 최고 점수를 낸 파라미터를 가진 모형
 
 model = grid_cv.best_estimator_
-# model.fit(x, y.values.ravel())
+model.fit(x, y.values.ravel())
 
-model.fit(x_train, y_train.values.ravel())
+# model.fit(x_train, y_train.values.ravel())
 y_pred = model.predict(x_test)
 ic('score:', accuracy_score(y_pred, y_test)) 
 
@@ -198,4 +198,3 @@ ic(np.unique(y, return_counts=True))
 ic(np.unique(y_summit, return_counts=True))
 sample_submission['ProdTaken'] = y_summit
 sample_submission.to_csv('dacon/vacation/save/sample_submission.csv', index=False)
-
