@@ -9,7 +9,7 @@ from icecream import ic
 #1. data
 x =  np.array([1,2,3])  # (3,)
 y =  np.array([1,2,3])  # (3,)
-x = torch.FloatTensor(x).unsqueeze(1)  # unsqueeze: 데이터의 차원을 늘려준다. (3,) -> (3,1)
+x = torch.FloatTensor(x).unsqueeze(1)  # FloatTensor(): 구체적인 텐서타입을 정의하여 텐서로 변환,  unsqueeze(): 데이터의 차원을 늘려준다. (3,) -> (3,1)
 y = torch.FloatTensor(y).unsqueeze(1)  
 ic(x.shape, y.shape)  # torch.Size([3, 1]), torch.Size([3, 1])
 ic(x, y)
@@ -35,7 +35,11 @@ def train(model, criterion, optimizer, x, y):
     loss = criterion(hypothesis, y)  # 위에서 정의한 MSELoss
     loss.backward()  # 기울기 계산
     optimizer.step()  # 가중치 수정
-    return loss.item()  # item(): numpy 형태로 값 반환
+    return loss.item()  
+'''
+.item(): 손실 함숫값과 같이 숫자가 하나인 텐서를 텐서가 아닌 값으로 만들어 준다.
+.numpy(): 넘파이 배열로 변환한다. 
+'''
 
 epochs = 0
 while True:

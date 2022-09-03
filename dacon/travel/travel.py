@@ -40,17 +40,6 @@ sample_submission = pd.read_csv('dacon/travel/data/sample_submission.csv')
 # ic(test.isna().sum())
 # ic(sample_submission.isna().sum())
 
-# 상관관계 분석도
-# plt.figure(figsize=(10, 8))
-# heat_table = train.corr()
-# mask = np.zeros_like(heat_table)
-# mask[np.triu_indices_from(mask)] = True
-# heatmap_ax = sns.heatmap(heat_table, annot=True, mask = mask, cmap='coolwarm', vmin=-1, vmax=1)
-# heatmap_ax.set_xticklabels(heatmap_ax.get_xticklabels(), fontsize=10, rotation=90)
-# heatmap_ax.set_yticklabels(heatmap_ax.get_yticklabels(), fontsize=10)
-# plt.title('correlation between features', fontsize=20)
-# plt.show()
-
 # 고객의 제품 인지 방법 (회사의 홍보 or 스스로 검색) mapping
 for these in [train, test]:
     these['TypeofContact'] = these['TypeofContact'].map({'Unknown': 0, 'Company Invited': 2, 'Self Enquiry': 1})
@@ -74,6 +63,20 @@ for these in [train, test]:
 # 직급 mapping
 for these in [train, test]:
     these['Designation'] = these['Designation'].map({'AVP': 0, 'VP': 1, 'Manager': 2, 'Senior Manager':3, 'Executive': 4})
+
+# 상관관계 분석도
+# plt.figure(figsize=(10, 8))
+# heat_table = train.corr()
+# mask = np.zeros_like(heat_table)
+# mask[np.triu_indices_from(mask)] = True
+# heatmap_ax = sns.heatmap(heat_table, annot=True, mask = mask, cmap='coolwarm', vmin=-1, vmax=1)
+# heatmap_ax.set_xticklabels(heatmap_ax.get_xticklabels(), fontsize=10, rotation=90)
+# heatmap_ax.set_yticklabels(heatmap_ax.get_yticklabels(), fontsize=10)
+# plt.title('correlation between features', fontsize=20)
+# plt.show()
+
+plt.figure(figsize=(8, 4))
+sns.countplot(x='OwnCar', hue='ProdTaken', data=train).set(title='OwnCar')
 
 # 이상치 확인
 # plt.scatter(train.NumberOfFollowups, train.NumberOfPersonVisiting)
