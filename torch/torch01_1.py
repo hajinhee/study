@@ -4,16 +4,15 @@ import torch.nn as nn
 import torch.optim as optim  # optimizer
 import torch.nn.functional as F 
 import time
+from icecream import ic 
 
 #1. data
 x =  np.array([1,2,3])  # (3,)
 y =  np.array([1,2,3])  # (3,)
-
-x = torch.FloatTensor(x).unsqueeze(1)    # torch는 이런식으로 데이터를 받는다.
-y = torch.FloatTensor(y).unsqueeze(1)   # unsqueeze 데이터의 차원을 늘려준다. (3,) -> (3,1)
-
-#print(x,y)                 # tensor([1., 2., 3.]) tensor([1., 2., 3.])
-#print(x.shape, y.shape)    # torch.Size([3]) torch.Size([3])
+x = torch.FloatTensor(x).unsqueeze(1)  # unsqueeze: 데이터의 차원을 늘려준다. (3,) -> (3,1)
+y = torch.FloatTensor(y).unsqueeze(1)  
+ic(x, y)                 # tensor([1., 2., 3.]) tensor([1., 2., 3.])
+ic(x.shape, y.shape)    # torch.Size([3]) torch.Size([3])
 # 위의 (3)인 data shape가 (3,1)로 바뀌어야 한다.
 
 #2. 모델구성

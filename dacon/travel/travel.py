@@ -23,9 +23,9 @@ from sklearn.metrics import matthews_corrcoef
 from sklearn.impute import SimpleImputer
 
 # 데이터 준비
-train = pd.read_csv('dacon/vacation/data/train.csv')
-test = pd.read_csv('dacon/vacation/data/test.csv') 
-sample_submission = pd.read_csv('dacon/vacation/data/sample_submission.csv')
+train = pd.read_csv('dacon/travel/data/train.csv')
+test = pd.read_csv('dacon/travel/data/test.csv') 
+sample_submission = pd.read_csv('dacon/travel/data/sample_submission.csv')
 
 # 데이터 확인
 # ic(train.info())
@@ -112,20 +112,13 @@ test.drop(columns=['id', 'NumberOfChildrenVisiting', 'NumberOfPersonVisiting', '
 x = train.drop(columns=['ProdTaken'], axis=1)
 y = train[['ProdTaken']]
 
-k_fold = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)  # StratifiedKFold -> 분류문제에 사용
-x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.9, shuffle=True, random_state=1234, stratify=y) 
+k_fold = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)  # StratifiedKFold --> 분류문제에 사용
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.9, shuffle=True, random_state=1234, stratify=y)  # stratify=y -> y개수만큼 컷
 
-'''
-# BayesianOptimization
+#  BayesianOptimization
 def CB_opt(n_estimators, depth, learning_rate, 
             l2_leaf_reg, model_size_reg, od_pval): 
     scores = []
-    # skf = k_fold
-#   for train_index, test_index in skf.split(x, y):
-    
-#     x_train, x_val = x.iloc[train_index], x.iloc[test_index]
-#     y_train, y_val = y.iloc[train_index], y.iloc[test_index]
- 
     reg = CatBoostClassifier(verbose=0,
                             n_estimators=int(n_estimators),
                             learning_rate=learning_rate,
@@ -142,7 +135,7 @@ def CB_opt(n_estimators, depth, learning_rate,
     return np.mean(scores)
 
 pbounds = {'n_estimators': (150, 1000),
-           'depth': (4, 15),
+           'depth': (4, 12),
            'learning_rate': (.01, 0.3),
            'l2_leaf_reg': (0, 10),
            'model_size_reg': (0, 10),
@@ -156,12 +149,6 @@ optimizer = BayesianOptimization(
 )
 optimizer.maximize(init_points=2, n_iter=20)
 ic(optimizer.max)
-'''
-
-# rf_params = {
-#     'n_estimators' : [100, 150, 200, 250, 300, 400, 450, 500, 550, 600, 650, 700, 750, 800]
-# }
-# rf = ExtraTreesClassifier(n_jobs=-1)
 
 cat_params = {
     # 'depth': [10, 11, 14, 15],
@@ -172,7 +159,7 @@ cat_params = {
     'od_pval': [0.0],
 }
                              
-cat = CatBoostClassifier(verbose=False, depth=14, n_estimators=200, allow_writing_files=False)  # CatBoostClassifier: 데이터에 범주형 변수가 많을 경우 유용
+cat = CatBoostClassifier(verbose=2, depth=14, n_estimators=200, allow_writing_files=False)  
 grid_cv = GridSearchCV(cat,
                        param_grid=cat_params,
                        cv=k_fold,
@@ -185,8 +172,8 @@ model = grid_cv.best_estimator_
 model.fit(x, y.values.ravel())
 
 # model.fit(x_train, y_train.values.ravel())
-y_pred = model.predict(x_test)
-ic('score:', accuracy_score(y_pred, y_test)) 
+# y_pred = model.predict(x_test)
+# ic('score:', accuracy_score(y_pred, y_test)) 
 
 # KFold 교차검증
 # score = cross_val_score(model, x, y.values.ravel(), cv=k_fold, n_jobs=-1, scoring='accuracy')
@@ -197,4 +184,4 @@ y_summit = model.predict(test)
 ic(np.unique(y, return_counts=True))
 ic(np.unique(y_summit, return_counts=True))
 sample_submission['ProdTaken'] = y_summit
-sample_submission.to_csv('dacon/vacation/save/sample_submission.csv', index=False)
+sample_submission.to_csv('dacon/travel/save/sample_submission.csv', index=False)
