@@ -11,13 +11,20 @@ x =  np.array([1,2,3])  # (3,)
 y =  np.array([1,2,3])  # (3,)
 x = torch.FloatTensor(x).unsqueeze(1)  # unsqueeze: 데이터의 차원을 늘려준다. (3,) -> (3,1)
 y = torch.FloatTensor(y).unsqueeze(1)  
-ic(x, y)                 # tensor([1., 2., 3.]) tensor([1., 2., 3.])
-ic(x.shape, y.shape)    # torch.Size([3]) torch.Size([3])
-# 위의 (3)인 data shape가 (3,1)로 바뀌어야 한다.
+ic(x, y)
+'''
+x: tensor([[1.],
+           [2.],
+           [3.]])
+y: tensor([[1.],
+           [2.],
+           [3.]])
+''' 
+ic(x.shape, y.shape)  # torch.Size([3, 1]), torch.Size([3, 1])
 
-#2. 모델구성
+#2. modeling
 # model.add(Dense(1, input_dim=1))      # Dense 밀집
-model = nn.Linear(1, 1)         # torch는 input이 앞에간다. 인풋, 아웃풋
+model = nn.Linear(1, 1)  # torch는 input이 앞에 위치한다. nn.Linear(1, 1)
 # nn.Linear(1,1)에서 앞의 1은 input data의 (3,1)의 1을 의미. 뒤의 1은 y값 (3,1)의 1을 의미
 
 #3. 컴파일, 훈련      
