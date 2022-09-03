@@ -8,38 +8,25 @@ import time
 USE_CUDA = torch.cuda.is_available()
 DEVICE = torch.device('cuda' if USE_CUDA else 'cpu')
 
-#1. 데이터 정제해서 값 도출
+#1. data
 x =  np.array([1,2,3])
 y =  np.array([1,2,3])
-
-x = torch.FloatTensor(x)#.to(DEVICE)   
+x = torch.FloatTensor(x)  # tensor([1., 2., 3.])
 y = torch.FloatTensor(y).unsqueeze(1).to(DEVICE)   
-
-# print('스케일링 전 : ',x)   tensor([1., 2., 3.])
-x = (x - torch.mean(x)) / torch.std(x)   # 평균을 빼고 표준편차로 나눈다. -> standscaler
-# print('스케일링 후 : ',x)   tensor([-1.,  0.,  1.])
-
+# scaling
+x = (x - torch.mean(x)) / torch.std(x)  # 평균을 빼고 표준편차로 나눈다(Standard) -> tensor([-1.,  0.,  1.])
 x = torch.FloatTensor(x).unsqueeze(1).to(DEVICE)
 
+#2. modeling
+model = nn.Linear(1, 1).to(DEVICE)   
 
-#2. 모델구성
-model = nn.Linear(1, 1).to(DEVICE)      # GPU 쓰겠다.
-
-#3. 컴파일, 훈련      
-criterion = nn.MSELoss()    # criterion은 class가 생성한 객체 instance이다.
+#3. compile, train      
+criterion = nn.MSELoss() 
 optimizer = optim.Adam(model.parameters(), lr=0.01) 
-
 def train(model, criterion, optimizer, x, y):
-    #model.train()   # 훈련모드
-    optimizer.zero_grad()   
-    
-    hypothesis = model(x)  
-    
-    # loss = criterion(hypothesis, y) 
-    # loss = nn.MSELoss(hypothesis,y) --> 이렇게하면 바로 에러터진다. 파이썬 문법에대한 이해 필요.
-                                        # 생성된 instance안에서만 값을 받을수 있다.
-    # loss = nn.MSELoss()(hypothesis,y)   # 이렇게 선언하면 돌아간다.
-    loss = F.mse_loss(hypothesis,y)     # 이것도 잘 돌아간다.
+    optimizer.zero_grad()  # 기울기 초기화
+    hypothesis = model(x)  # 가설 정의
+    loss = F.mse_loss(hypothesis, y)  # or  loss = criterion(hypothesis, y) 
     loss.backward()    
     optimizer.step()    
     return loss.item()  
@@ -47,25 +34,20 @@ def train(model, criterion, optimizer, x, y):
 epochs = 0
 while True:
     epochs += 1
-    loss = train(model,criterion,optimizer,x,y)    # 현재는 data loader 쓰지 않는 상태
-    print(f'epoch : {epochs}, loss : {loss}')
-    # time.sleep(0.1)
+    loss = train(model, criterion, optimizer, x, y) 
+    print(f'epoch : {epochs}, loss : {loss}')  # epoch : 8015, loss : 0.0
     if loss == 0: break
-print('==================================================================================')
 
-#4. 평가, 예측
-# loss = model.evaluate(x, y) # 평가하다.
-
+#4. evaluate, predict
 def evaluate(model, criterion, x, y):
-    model.eval()        # torch는 eval로 평가한다. 평가모드
+    model.eval()       
+    with torch.no_grad():   
+        y_pred = model(x)
+        loss = criterion(y_pred, y)
+    return loss.item()
 
-    with torch.no_grad():   # gradient를 갱신하지않겠다.
-        predict = model(x)
-        loss2 = criterion(predict, y)
-    return loss2.item()
+loss = evaluate(model, criterion, x, y)
+print(f'loss : {loss}')  # loss : 0.0
 
-loss2 = evaluate(model, criterion, x, y)
-print(f'최종 loss : {loss2}')
-
-result = model(torch.Tensor([[4]]).to(DEVICE))  # 여기도 to DEVICE해줘야 같은 gpu에서 연산되서 에러안뜬다.
-print(f'4의 예측값 : {result.item()}')
+result = model(torch.Tensor([[4]]).to(DEVICE)) 
+print(f'4의 예측값 : {result.item()}')  # 4의 예측값 : 6.0

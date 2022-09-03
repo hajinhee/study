@@ -2,52 +2,36 @@ from sklearn.datasets import load_iris
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from icecream import ic
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+import numpy as np
 
 USE_CUDA = torch.cuda.is_available()
 DEVICE = torch.device('cuda' if USE_CUDA else 'cpu')
 
+#1. data
 datasets = load_iris()
-
 x = datasets.data
 y = datasets.target
+ic(np.unique(y))  # array([0, 1, 2]) -> 다중분류
 
-# print(np.unique(y,return_counts = True))  (array([0, 1, 2]), array([50, 50, 50], dtype=int64))
+# data split
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, shuffle=True, random_state=66)
 
-x = torch.FloatTensor(x)
-y = torch.LongTensor(y)         # <-- y값 자체가 int값인데 FloatTensor하면 에러가 뜬다. LongTensor하자
-
-from sklearn.model_selection import train_test_split
-x_train, x_test, y_train, y_test = train_test_split(x,y, 
-         train_size = 0.7, shuffle = True, random_state = 66)
-
-x_train = torch.FloatTensor(x_train)#.to(DEVICE)
-y_train = torch.LongTensor(y_train).to(DEVICE)
-x_test = torch.FloatTensor(x_test)#.to(DEVICE)
-y_test = torch.LongTensor(y_test).to(DEVICE)
-
-from sklearn.preprocessing import StandardScaler
+# scaling
 scaler = StandardScaler()
 x_train = scaler.fit_transform(x_train)
 x_test = scaler.transform(x_test)
 
-# print(x_train.shape, y_train.shape)   # (105, 4) torch.Size([105, 1])
-# print(type(x_train),type(y_train))  # <class 'numpy.ndarray'> <class 'torch.Tensor'>
+# numpy -> tensor
+x_train = torch.FloatTensor(x_train).to(DEVICE)  # torch.Size([120, 4])
+y_train = torch.LongTensor(y_train).to(DEVICE)  # torch.Size([120])
+x_test = torch.FloatTensor(x_test).to(DEVICE)  # torch.Size([30, 4])
+y_test = torch.LongTensor(y_test).to(DEVICE)  # torch.Size([30])
 
-x_train = torch.FloatTensor(x_train).to(DEVICE)
-x_test = torch.FloatTensor(x_test).to(DEVICE)
-
-#2. 모델
-# model = nn.Sequential(
-#     nn.Linear(4,32),
-#     nn.ReLU(),
-#     nn.Linear(32,32),
-#     nn.ReLU(),
-#     nn.Linear(32,16),
-#     nn.ReLU(),
-#     nn.Linear(16,3),
-#     # nn.Sigmoid()      torch에서는 마지막에 sofrmax를 안한다.
-# ).to(DEVICE)
-
+#2. modeling
 class Model(nn.Module):
     def __init__(self, input_dim, output_dim):
         #super().__init__()
@@ -69,23 +53,15 @@ class Model(nn.Module):
         
 model = Model(4, 3).to(DEVICE)
 
-#3. 컴파일, 훈련
-# criterion = nn.BCELoss()    # Binary CrossEntropy 
-criterion = nn.CrossEntropyLoss()   
-
-optimizer = optim.Adam(model.parameters(), lr=0.1)  # 옵티마이저 정의할때 tensorflow에서는 안하지만 
-# torch에서는 다르다 model의 parameters를 갱신하는것이 Gradient Descent에서 weight와 bias를 
-# 갱신하는것과 같은 의미. 그래서 optim.Adam(model.parameters())해준다.
-
+#3. compile, train
+criterion = nn.CrossEntropyLoss()  # categorical_crossentropy  
+optimizer = optim.Adam(model.parameters(), lr=0.1) 
 def train(model, criterion, optimizer, x_train, y_train):
-    model.train()   # model.eval()은 역전파 갱신이 안됨. model.train()도 있지만
-                    # 항상 default처럼 있기때문에 쓰지않아도 괜찮다.
-    
+    model.train()  
     optimizer.zero_grad()
     hypothesis = model(x_train)
-    loss = criterion(hypothesis, y_train)   # 여기까지가 순전파
-    
-    loss.backward()                         # 역전파
+    loss = criterion(hypothesis, y_train)
+    loss.backward()
     optimizer.step()                
     return loss.item()
 
@@ -94,39 +70,36 @@ while True:
     epoch += 1
     early_stopping = 0
     loss = train(model, criterion, optimizer, x_train, y_train)
-    print(f'epoch: {epoch}, loss:{loss:.8f}')
-    
-    if epoch == 1200:break
-    # if :
-    #     early_stopping = 0
-    
-    # else:
-    #     early_stopping += 1
-    
-    # if early_stopping == 20:
-    #     break
-
-#4.평가, 예측
-print("================== 평가 예측 ====================")
+    print(f'epoch: {epoch}, loss:{loss:.8f}')  # epoch: 1200, loss:0.00000283
+    if epoch == 1200:
+        break
+   
+#4. evaluate, predict
 def evaluate(model, criterion, x_test, y_test):
     model.eval()
-    
     with torch.no_grad():
         hypothesis = model(x_test)
         loss = criterion(hypothesis, y_test)
         return loss.item()
 
 loss = evaluate(model, criterion, x_test, y_test)
-print(f'loss: {loss}')
+print(f'loss: {loss}')  # loss: 2.552999973297119
 
-y_predict = torch.argmax(model(x_test),1)
-print(y_predict)
+y_predict = torch.argmax(model(x_test), 1)
+print('y_predict: ', y_predict)
+'''
+tensor([1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 2, 2, 0, 2, 2, 0, 1, 1, 2, 2, 0, 1, 1, 2, 1, 2, 0, 1, 1, 2], device='cuda:0')
+'''
+acc_score = (y_predict == y_test).float().mean()    
+print(f'acc_score : {acc_score:.4f}')  # acc_score : 0.9000
 
-score = (y_predict == y_test).float().mean()    
-# y_predict와 y_test가 같다면 True or False로 반환되고 거기에 float해서 0과1로 바꿔준 후 평균을 내면 그게 acc다.
-print(f'accyracy : {score:.4f}')
+acc_score2 = accuracy_score(y_test.cpu().numpy(), y_predict.cpu().numpy())  # accuracy_score() 사용
+print(f'acc_score2 : {acc_score2:.4f}')  # acc_score2 : 0.9000
 
-from sklearn.metrics import accuracy_score
-score2 = accuracy_score(y_test.cpu().numpy(),y_predict.cpu().numpy()) 
-# output을 cpu에 올리고 detach하고? numpy해준다.
-print(f'accuracy2 : {score2:.4f}')
+'''
+****RuntimeError: 0D or 1D target tensor expected, multi-target not supported 에러****
+nn.CrossEntropyLoss() 혹은 F.cross_entropy 를 사용했을 때 나타나는 에러이다.
+nn.CrossEntropyLoss()(pred, target) 이렇게 계산이 되는데
+가령 pred의 shape의 [B, C]라면 target의 shape은 [B]가 되어야 하는데 [B, 1] 이렇게 돼서 문제가 발생한다.
+문제를 해결하려면 target의 shape를 축소한다. [B, 1] -> [B]
+'''

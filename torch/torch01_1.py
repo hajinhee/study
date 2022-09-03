@@ -9,8 +9,13 @@ from icecream import ic
 #1. data
 x =  np.array([1,2,3])  # (3,)
 y =  np.array([1,2,3])  # (3,)
-x = torch.FloatTensor(x).unsqueeze(1)  # FloatTensor(): 구체적인 텐서타입을 정의하여 텐서로 변환,  unsqueeze(): 데이터의 차원을 늘려준다. (3,) -> (3,1)
+x = torch.FloatTensor(x).unsqueeze(1) 
 y = torch.FloatTensor(y).unsqueeze(1)  
+''' 
+FloatTensor(): 구체적인 텐서타입을 정의하여 텐서로 변환한다.
+unsqueeze(1): 데이터 1번째 자리의 차원을 늘려준다. -->  (3,) -> (3, 1)
+'''
+
 ic(x.shape, y.shape)  # torch.Size([3, 1]), torch.Size([3, 1])
 ic(x, y)
 '''

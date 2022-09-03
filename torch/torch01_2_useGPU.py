@@ -8,9 +8,9 @@ USE_CUDA = torch.cuda.is_available()
 DEVICE = torch.device('cuda' if USE_CUDA else 'cpu')
 
 # torch 버전체크, GPU사용 가능 여부 확인
-print(f'torch : {torch.__version__}, 사용DEVICE : {DEVICE}') # torch : 1.10.2+cu113, 사용DEVICE : cuda
+print(f'torch : {torch.__version__}, 사용DEVICE : {DEVICE}') # torch : 1.12.0, 사용DEVICE : cuda
 # GPU 이름 체크(cuda:0에 연결된 그래픽 카드 기준)
-print(torch.cuda.get_device_name()) # NVIDIA GeForce RTX 2080
+print(torch.cuda.get_device_name())  # NVIDIA GeForce RTX 3050 Laptop GPU
 # 사용 가능 GPU 개수 체크
 print(torch.cuda.device_count()) # 1
 
@@ -27,7 +27,7 @@ model = nn.Linear(1, 1).to(DEVICE)  # nn.Linear(input_dim, output_dim)
 criterion = nn.MSELoss() 
 optimizer = optim.Adam(model.parameters(), lr=0.01) 
 
-def train(model, optimizer, x, y):
+def train(model, criterion, optimizer, x, y):
     optimizer.zero_grad()     
     hypothesis = model(x)  # 가설 정의
     # loss = criterion(hypothesis, y) 
@@ -39,25 +39,20 @@ def train(model, optimizer, x, y):
 epochs = 0
 while True:
     epochs += 1
-    loss = train(model,criterion,optimizer,x,y)    # 현재는 data loader 쓰지 않는 상태
+    loss = train(model, criterion, optimizer, x, y)  # 현재는 data loader 쓰지 않는 상태
     print(f'epoch : {epochs}, loss : {loss}')
-    # time.sleep(0.1)
     if loss == 0: break
-print('==================================================================================')
 
-#4. 평가, 예측
-# loss = model.evaluate(x, y) # 평가하다.
-
+#4. evaluate, predict
 def evaluate(model, criterion, x, y):
-    model.eval()        # torch는 eval로 평가한다. 평가모드
+    model.eval() 
+    with torch.no_grad():  # dropout, batchnorm 등의 기능을 비활성화
+        y_pred = model(x)  # autograd engine(gradient를 계산하는 context)을 비활성화
+        loss = criterion(y_pred, y)
+    return loss.item()
 
-    with torch.no_grad():   # gradient를 갱신하지않겠다.
-        predict = model(x)
-        loss2 = criterion(predict, y)
-    return loss2.item()
+loss = evaluate(model, criterion, x, y)
+print(f'loss : {loss}')  # loss : 0.0
 
-loss2 = evaluate(model, criterion, x, y)
-print(f'최종 loss : {loss2}')
-
-result = model(torch.Tensor([[4]]).to(DEVICE))  # 여기도 to DEVICE해줘야 같은 gpu에서 연산되서 에러안뜬다.
-print(f'4의 예측값 : {result.item()}')
+result = model(torch.Tensor([[4]]).to(DEVICE)) 
+print(f'4의 예측값 : {result.item()}')  # 4의 예측값 : 3.999999761581421
