@@ -96,9 +96,9 @@ for these in [train, test]:
         these[col].fillna(0, inplace=True) 
 
 for these in [train, test]:
-        these['PreferredPropertyStar'].fillna(these.groupby('NumberOfTrips')['PreferredPropertyStar'].transform('mean'), inplace=True)
-        these['NumberOfTrips'].fillna(these.groupby('DurationOfPitch')['NumberOfTrips'].transform('mean'), inplace=True)
-        these['Age'].fillna(these.groupby('Designation')['Age'].transform('mean'), inplace=True)
+        these['PreferredPropertyStar'].fillna(train.groupby('NumberOfTrips')['PreferredPropertyStar'].transform('mean'), inplace=True)
+        these['NumberOfTrips'].fillna(train.groupby('DurationOfPitch')['NumberOfTrips'].transform('mean'), inplace=True)
+        these['Age'].fillna(train.groupby('Designation')['Age'].transform('mean'), inplace=True)
 
 # 스케일
 # scaler = MinMaxScaler()
