@@ -25,7 +25,6 @@ scaler = MaxAbsScaler()
 x_train = scaler.fit_transform(x_train)   
 x_test = scaler.transform(x_test)    
 
-
 #2. 모델구성,모델링
 input1 = Input(shape=(13))
 dense1 = Dense(120)(input1)
@@ -45,8 +44,7 @@ model = Model(inputs=input1, outputs=output1)
 # model.add(Dense(40))
 # model.add(Dense(20))
 # model.add(Dense(3, activation='softmax'))
-#model.summary()
-
+# model.summary()
 
 #3. 컴파일 훈련
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy']) 

@@ -2,9 +2,7 @@ import numpy as np
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 
-
-#1. 데이터
-
+#1. data
 datasets = load_iris()
 # print(datasets.DESCR)
 # print(datasets.feature_names)

@@ -83,3 +83,4 @@ def quiz32_df_grade(self) -> str:
     df_dict = pd.DataFrame.from_dict(dict(zip(idx, data)), orient='index', columns=col)
     ic(df_dict)
     return None
+
