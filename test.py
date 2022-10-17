@@ -40,7 +40,7 @@ if __name__ == '__main__':
                  1  44  24  97
 '''
 
-def quiz31_rand_2_by_3(self) -> str:
+def quiz31_rand_2_by_3(self):
     '''
     l1 = [myRandom(10, 99) for i in range(3)]
     l2 = [myRandom(10, 99) for i in range(3)]
@@ -50,7 +50,7 @@ def quiz31_rand_2_by_3(self) -> str:
     # numpy 사용한 예제
     df = pd.DataFrame(np.random.randint(10, 99, size=(2, 3)))
     ic(df)
-    return None
+    return df
 
 '''
 데이터프레임 문제 Q04.
@@ -72,7 +72,7 @@ ic| df4:        국어  영어  수학  사회
 @staticmethod
 def id(chr_size) -> str: return ''.join([random.choice(string.ascii_letters) for i in range(chr_size)])
 
-def quiz32_df_grade(self) -> str:
+def quiz32_df_grade(self):
     data = np.random.randint(0, 101, (10, 4))  # 과목 점수 (10, 4)
     idx = [self.id(5) for i in range(10)]  # 아이디 인덱스
     col = ['국어', '영어', '수학', '사회']  # 컬럼
@@ -82,6 +82,6 @@ def quiz32_df_grade(self) -> str:
 
     df_dict = pd.DataFrame.from_dict(dict(zip(idx, data)), orient='index', columns=col)
     ic(df_dict)
-    return None
+    return df_dict
 
 
