@@ -11,7 +11,6 @@ class Item(BaseModel):
     price: float  # required
     tax: Union[float, None] = None  # Optional
 
-# Use the model
 @app.post('/items/')
 async def create_item(item: Item):  # 만든 모델로 해당 타입을 선언한다.
     item_dict = item.dict() 
@@ -21,9 +20,9 @@ async def create_item(item: Item):  # 만든 모델로 해당 타입을 선언�
     return item_dict
 
 # Request body + path parameters
-@app.put('/items/{item_id}')
-async def create_item2(item_id: int, item: Item):
-    return {'item_id': item_id, **item.dict()}
+# @app.put('/items/{item_id}')
+# async def create_item2(item_id: int, item: Item):
+#     return {'item_id': item_id, **item.dict()}
 
 # Request body + path + query parameters
 @app.put('/items/{item_id}')

@@ -49,8 +49,6 @@ app = FastAPI()
 #     query_items = {'q' : q}
 #     return query_items
 
-
-# Declare more metadata
 # @app.get("/items/")
 # async def read_items(
 #     q: Union[str, None] = Query(default=None, title="Query string", min_length=3)):
