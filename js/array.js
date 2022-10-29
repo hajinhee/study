@@ -50,3 +50,36 @@ fruits.shift();
 console.log(fruits);
 
 // note!! shift, unshift are slower than pop, push
+// splice: remove an item by index position
+fruits.push('strawberry', 'peach', 'lemon');
+console.log(fruits);  
+fruits.splice(1, 1)
+console.log(fruits);  // ['apple', 'strawberry', 'peach', 'lemon']
+fruits.splice(1, 1, 'apple', 'water melon');
+console.log(fruits);  
+
+// combine two arrays
+const fruits2 = ['lemon', 'kiwi']
+const newFruits = fruits.concat(fruits2);
+console.log(newFruits);
+
+
+// 5. Searching
+// indexOf: find the index
+console.clear();
+console.log(fruits);
+console.log(fruits.indexOf('apple'));
+console.log(fruits.indexOf('water melon'));
+console.log(fruits.indexOf('coconut'));
+
+// includes 
+console.log(fruits.includes('water melon'));
+console.log(fruits.includes('coconut'));
+
+// lastIndexOf
+console.clear();
+fruits.push('apple');
+console.log(fruits);
+console.log(fruits.indexOf('apple'));
+console.log(fruits.lastIndexOf('apple'));
+
