@@ -63,10 +63,12 @@
     console.clear();
     const result = students.some((student) => student.score < 50);
     console.log(result);  // 하나라도 해당되면
+    // return true -> break, false -> continue   
 
     const result2 = !students.every((student) => student.score >= 50);
     console.log(result2);  // 모든 값이
-  }
+    // some의 반대 
+}
   
   // Q9. compute students' average score
   {   // reduce: 배열 하나하나를 돌면서 값을 누적

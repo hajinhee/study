@@ -22,13 +22,18 @@ for (let i=0; i < fruits.length; i++) {
     console.log(fruits[i]);
 }
 
-// b. for of
+// b. for of -> list
 for (let fruit of fruits) {
     console.log(fruit);
 }
 
 // c. forEach
 fruits.forEach((fruit, index) => console.log(fruit, index))  
+
+// d. for in -> dict
+for (let i in fruits) {
+    console.log(i, fruits[i])  // i: key, fruits[i]: value
+}
 
 // 4. Addrion, deletion, copy
 // push: add an item to the end
