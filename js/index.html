@@ -1,13 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <script src="json.js"></script>
-</head>
-<body>
-    
-</body>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="slide.css" />
+    <script defer src="slide.js"></script>
+  </head>
+  <body>
+    </div>
+    <div class="box">
+      <!--div를 두개 감싼이유는 img들을 좌우배치하고 배치된 사진중 한장만 보이게 하기 위해서이다.-->
+      <div class="slide">
+        <!--배치된 img들을 하나의 img만 보이게 가리기 위한 태그-->
+        <div id="imgSlide" class="images">
+          <!--img들을 좌우배치할 태그-->
+          <img src="img/1.gif" />
+          <img src="img/2.gif" />
+          <img src="img/3.gif" />
+        </div>
+      </div>
+      <button class="back">❮</button>
+      <button class="next">❯</button>    
+  </body>
 </html>

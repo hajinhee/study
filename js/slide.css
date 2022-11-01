@@ -1,0 +1,44 @@
+.box {
+  width: 350px;
+  margin: 0 auto; 
+}
+
+/**사진**/
+.slide {
+  width: 350px;
+  height: 400px; /**사진보다 크면 다음 사진까지 표시되어 img와 slide크기를 맞춘다.**/
+  overflow: hidden; /**이미지는 내장이라 overflow:hidden을 사용해 넘친 사진들을 안보이게 한다.**/
+}
+.images {
+  display: flex; /**좌우 슬라이드를 위해 flex로 사진을 가로정렬한다.**/
+  height: 400px; /**slide와 images의 높이가 다르면 부자연스럽게 표시돼 slide의 높이에 맞게 높이를 바꾼다.**/
+  transition: transform 0.5s;
+  /**어떤 속성에 대해 애니메이션 효과를 주는 속성이다. 
+  tranform속성에 0.5초의 듀레이션(동작의 시작해서 끝나는 시간)을 준다.**/
+}
+img {
+  width: 350px;
+  height: 400px; 
+}
+
+/**버튼위치**/
+.back {
+  position: relative;
+  bottom: 200px;
+  background-color:rgba(0, 0, 0, 0);
+  border:none;
+}
+.next {
+  position: relative;
+  bottom: 200px;
+  left: 285px;
+  background-color:rgba(255, 255, 255, 0);
+  border:none;
+}
+
+/**버튼디자인**/
+button {
+  width: 30px;
+  height: 30px;
+  color: white;
+}
