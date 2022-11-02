@@ -6,19 +6,29 @@
     <script defer src="slide.js"></script>
   </head>
   <body>
-    </div>
-    <div class="box">
-      <!--div를 두개 감싼이유는 img들을 좌우배치하고 배치된 사진중 한장만 보이게 하기 위해서이다.-->
-      <div class="slide">
-        <!--배치된 img들을 하나의 img만 보이게 가리기 위한 태그-->
-        <div id="imgSlide" class="images">
-          <!--img들을 좌우배치할 태그-->
-          <img src="img/1.gif" />
-          <img src="img/2.gif" />
-          <img src="img/3.gif" />
+    <a id="modal_up">Click!</a>
+    <div class="auth_modal" id="auth_modal">
+        <div class="auth_settting" id="auth_settting">
+            <div class="box">
+                <!--div를 두개 감싼이유는 img들을 좌우배치하고 배치된 사진중 한장만 보이게 하기 위해서이다.-->
+                <div class="slide">
+                  <!--배치된 img들을 하나의 img만 보이게 가리기 위한 태그-->
+                  <div class="images">
+                    <!--img들을 좌우배치할 태그-->
+                    <img src="img/1.gif" loading="lazy"/>
+                    <img src="img/2.gif" loading="lazy"/>
+                    <img src="img/3.gif" loading="lazy"/>
+                  </div>
+                  <div id="dot"></div>  
+                </div>
+                <button class="back">❮</button>
+                <button class="next">❯</button>
+            </div>
         </div>
-      </div>
-      <button class="back">❮</button>
-      <button class="next">❯</button>    
+        <div class="right">
+            <button class="btn-close" id="btn-close">&times;</button>
+        </div>
+    </div>
+    
   </body>
 </html>
