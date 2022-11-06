@@ -1,0 +1,139 @@
+/* body {
+  background:#ddd;
+  font-family:"Raleway";
+}
+.tabs {
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:500px;
+  height:250px;
+  background:#f5f5f5;
+  padding:20px 30px;
+  overflow:hidden;
+  border-radius:50px;
+  box-shadow:5px 10px 5px #ccc;
+
+}
+.tabs .tab-header {
+  height:60px;
+  display:flex;
+  align-items:center;
+}
+.tabs .tab-header > div {
+  width:calc(100% / 5);
+  text-align:center;
+  color:#888;
+  font-weight:600;
+  cursor:pointer;
+  font-size:14px;
+  text-transform:uppercase;
+  outline:none;
+}
+.tabs .tab-header > div > i {
+  display:block;
+  margin-bottom:5px;
+}
+.tabs .tab-header > div.active {
+  color:#0d6efd;
+  font-size: initial;
+}
+.tabs .tab-indicator {
+  position:relative;
+  width:calc(100% / 5);
+  height:5px;
+  background:#0d6efd;
+  left:0px;
+  border-radius:5px;
+  transition:all 300ms ease-in-out;
+}
+.tabs .tab-body {
+  position:relative;
+  height:calc(100% - 60px);
+  padding:10px 5px;
+}
+.tabs .tab-body > div {
+  position:absolute;
+  top:-200%;
+  opacity:0;
+  transform:scale(0.9);
+  transition:opacity 500ms ease-in-out 0ms,
+    transform 500ms ease-in-out 0ms;
+}
+.tabs .tab-body > div.active {
+  top:0px;
+  opacity:1;
+  transform:scale(1);
+} */
+
+
+body {
+    background:#ddd;
+    font-family:"Raleway";
+  }
+  .faqDiv {
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:550px;
+    height:400px;
+    background:#f5f5f5;
+    padding:20px 30px;
+    overflow:hidden;
+    border-radius:50px;
+    box-shadow:5px 10px 5px #ccc;
+  }
+  .faqDiv .nav {
+    height:60px;
+    display:flex;
+    align-items:center;
+    list-style: none;
+    padding-left: 0px;
+  }
+  .faqDiv .nav > li {
+    width:calc(100% / 5);
+    text-align:center;
+    color:#888;
+    font-weight:600;
+    cursor:pointer;
+    font-size:14px;
+    text-transform:uppercase;
+    outline:none;
+  }
+  .faqDiv .nav > li > i {
+    display:block;
+    margin-bottom:5px;
+  }
+  .faqDiv .nav > li.active {
+    color:#0d6efd;
+    font-size: initial;
+  }
+  .faqDiv .tab-indicator {
+    position:relative;
+    width:calc(100% / 5);
+    height:5px;
+    background:#0d6efd;
+    left:0px;
+    border-radius:5px;
+    transition:all 300ms ease-in-out;
+  }
+  .faqDiv .tab-body {
+    position:relative;
+    height:calc(100% - 60px);
+    padding:10px 5px;
+  }
+  .faqDiv .tab-body > div {
+    position:absolute;
+    top:-200%;
+    opacity:0;
+    transform:scale(0.9);
+    transition:opacity 500ms ease-in-out 0ms,
+      transform 500ms ease-in-out 0ms;
+  }
+  .faqDiv .tab-body > div.active {
+    top:0px;
+    opacity:1;
+    transform:scale(1);
+  }
